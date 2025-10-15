@@ -1,7 +1,7 @@
 let startGame = document.getElementsByClassName('startGameButton')[0];
 let joinGame = document.getElementsByClassName('joinGameButton')[0];
 let games = document.getElementsByClassName('game');
-let currentGame;
+let selectedGame;
 
 startGame.addEventListener('click', async ()=> {
     try {
@@ -19,16 +19,16 @@ startGame.addEventListener('click', async ()=> {
 })
 
 joinGame.addEventListener('click', ()=> {
-    window.location.href = `/game/${currentGame.innerHTML}`
+    window.location.href = `/game/${selectedGame.innerHTML}`
 })
 
 for (const game of games) {
     game.addEventListener('click', ()=> {
         console.log('test');
-        if (currentGame) {
-            currentGame.classList.remove('selected');
+        if (selectedGame) {
+            selectedGame.classList.remove('selected');
         }
-        currentGame = game;
-        currentGame.classList.add('selected');
+        selectedGame = game;
+        selectedGame.classList.add('selected');
     })
 }
