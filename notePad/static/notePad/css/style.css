@@ -1,0 +1,85 @@
+.notePadDiv {
+    padding-left: 10px;
+    min-width: 300px;
+}
+
+.notePadTop {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    height: 150px;
+    width: 100%;
+    border-top-left-radius: 150px;
+    border-top-right-radius: 150px;
+    border: 1px solid black;
+    border-bottom: 0;
+    box-sizing: border-box;
+}
+
+.notePadTop div {   
+    width: 28%;
+    text-align: center;
+}
+
+.notePadTop * p {
+    margin: 0;
+}
+
+.playerPortrait {
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    border: 1px solid black;
+    overflow: hidden;
+}
+
+.test {
+    max-width: 100%;
+    width: fit-content;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td {
+    border: 1px solid black;
+    padding: 0px;
+    margin: 0px;
+    height: 40px;
+    width: 40px;
+    text-align: center;
+}
+
+td input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: none;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    font-size: 2rem;
+    padding: 0.1rem;
+}
+
+td input[type="checkbox"]::before {
+  content: "";
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(20% 0%, 0% 20%, 30% 50%, 0% 80%, 20% 100%, 50% 70%, 80% 100%, 100% 80%, 70% 50%, 100% 20%, 80% 0%, 50% 30%);
+  transform: scale(0);
+  background-color: black;
+}
+
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+

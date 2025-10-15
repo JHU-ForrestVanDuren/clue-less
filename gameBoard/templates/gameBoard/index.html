@@ -1,0 +1,35 @@
+{% load static %}
+<link  href="{% static 'gameBoard/css/style.css' %}" rel="stylesheet">
+<div class="ui">
+    <div class="boardAndChat">
+        <div class="boardContainer">
+            <div class="boardSquare">Kichen</div>
+            <div class="boardDiamond"></div>
+            <div class="boardSquare">Ballroom</div>
+            <div class="boardDiamond"></div>
+            <div class="boardSquare">Conservatory</div>
+            <div class="boardDiamond"></div>
+            <div class="fillSquare"></div>
+            <div class="boardDiamond"></div>
+            <div class="fillSquare"></div>
+            <div class="boardDiamond"></div>
+            <div class="boardSquare">Dining Room</div>
+            <div class="boardDiamond"></div>
+            <div class="boardSquare">Library</div>
+            <div class="boardDiamond"></div>
+            <div class="boardSquare">Billiard Room</div>
+            <div class="boardDiamond"></div>
+            <div class="fillSquare"></div>
+            <div class="boardDiamond"></div>
+            <div class="fillSquare"></div>
+            <div class="boardDiamond"></div>
+            <div class="boardSquare">Lounge</div>
+            <div class="boardDiamond"></div>
+            <div class="boardSquare">Hall</div>
+            <div class="boardDiamond"></div>
+            <div class="boardSquare">Study</div>
+        </div>
+        {% include 'chatSystem/index.html' %}
+    </div>
+    {% include 'notePad/index.html' %}
+</div>

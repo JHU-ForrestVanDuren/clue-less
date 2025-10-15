@@ -1,0 +1,13 @@
+.characters {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.startGameButton {
+    padding: 1px 6px;
+    border: 1px outset bottonborder;
+    border-radius: 3px;
+    color: buttontext;
+    background-color: buttonface;
+    text-decoration: none;
+}
