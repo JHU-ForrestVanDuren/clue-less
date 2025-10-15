@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'lobby.apps.LobbyConfig',
     'gameBoard.apps.GameboardConfig',
     'notePad.apps.NotepadConfig',
-    'chatSystem.apps.ChatsystemConfig'
+    'chatSystem.apps.ChatsystemConfig',
+    'players.apps.PlayersConfig'
 ]
 
 MIDDLEWARE = [
@@ -124,3 +125,5 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']

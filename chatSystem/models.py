@@ -1,3 +1,7 @@
 from django.db import models
+from lobby.models import ActiveGames
 
-# Create your models here.
+class Messages(models.Model):
+    id = models.BigIntegerField(primary_key=True, editable=False)
+    game_id = models.ForeignKey(ActiveGames, on_delete=models.CASCADE)
+    message = models.CharField()

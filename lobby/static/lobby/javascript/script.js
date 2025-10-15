@@ -5,7 +5,20 @@ let selectedGame;
 
 startGame.addEventListener('click', async ()=> {
     try {
-        const response = await fetch("/createGame/");
+
+        const chosenCharacter = document.getElementById('characters').value;
+
+        const body = {
+            character: chosenCharacter
+        };
+
+        const response = await fetch("/createGame/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
