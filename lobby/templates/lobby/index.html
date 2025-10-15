@@ -1,8 +1,8 @@
 {% load static %}
 <link  href="{% static 'lobby/css/style.css' %}" rel="stylesheet">
 <div>
-    <p>Select a Character to start a game with</p>
-    <a href="{% url 'gameBoard:index' %}" class="startGameButton">Start Game</a>
+    <p >Select a Character to start a game with</p>
+    <button class="startGameButton">Start Game</button> 
     <select name="characters" id="characters" class="characters">
         <option value="Colonel Mustard">Colonel Mustard</option>
         <option value="Professor Plum">Professor Plum</option>
@@ -12,5 +12,11 @@
         <option value="Mrs. White">Mrs. White</option>
     </select>
     <p>Select a game to join</p>
-    <button>Join Game</button>
+    <button class="joinGameButton">Join Game</button>
+    <ul>
+        {% for game in gameList %}
+            <li class="game">{{game.game_id}}</li>
+        {% endfor %}
+    </ul>
 </div>
+<script src="{% static 'lobby/javascript/script.js' %}"></script>

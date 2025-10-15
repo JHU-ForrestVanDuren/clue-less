@@ -3,11 +3,18 @@
     vertical-align: middle;
 }
 
-.startGameButton {
-    padding: 1px 6px;
-    border: 1px outset bottonborder;
-    border-radius: 3px;
-    color: buttontext;
-    background-color: buttonface;
-    text-decoration: none;
+ul {
+    list-style-type: none;
+}
+
+li {
+    width: fit-content;
+}
+
+li:hover {
+    cursor: pointer;
+}
+
+.selected {
+    background-color: lightblue;
 }

@@ -5,4 +5,5 @@ app_name = 'lobby'
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("createGame/", views.createGame, name="createGame")
 ]

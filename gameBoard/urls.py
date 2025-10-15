@@ -4,5 +4,5 @@ from . import views
 app_name = 'gameBoard'
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("<uuid:game_id>", views.index, name="index"),
 ]
