@@ -3,12 +3,12 @@ from lobby.models import ActiveGames
 
 class Players(models.Model):
     id = models.UUIDField(primary_key=True, editable=False)
-    character = models.CharField()
+    character = models.CharField(max_length=100)
     # user_name = models.CharField()
     out_of_game = models.BooleanField()
     is_players_turn = models.BooleanField()
     player_number = models.IntegerField()
-    current_position = models.CharField()
+    current_position = models.CharField(max_length=100)
     note_pad = models.JSONField()
     game = models.ForeignKey(ActiveGames, on_delete=models.CASCADE)
 
@@ -16,6 +16,6 @@ class Players(models.Model):
         return f"[{self.id},{self.character},{self.game}]"
 
 class Cards(models.Model):
-    value = models.CharField(primary_key=True, editable=False)
-    type = models.CharField(editable=False)
+    value = models.CharField(primary_key=True, editable=False, max_length=100)
+    type = models.CharField(editable=False, max_length=50)
     players_holding = models.ManyToManyField(Players)
