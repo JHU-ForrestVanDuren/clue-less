@@ -2,6 +2,8 @@ from django.db import models
 from lobby.models import ActiveGames
 
 class Messages(models.Model):
-    id = models.BigIntegerField(primary_key=True, editable=False)
-    game_id = models.ForeignKey(ActiveGames, on_delete=models.CASCADE)
+    game = models.ForeignKey(ActiveGames, on_delete=models.CASCADE)
     message = models.CharField()
+
+    def __str__(self):
+        return f"[{self.id},{self.message}, {self.game}]"

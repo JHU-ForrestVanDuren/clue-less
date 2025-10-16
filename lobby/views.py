@@ -8,11 +8,9 @@ from django.views.decorators.csrf import csrf_exempt
 
 def index(request):
     game_list = ActiveGames.objects.all()
-
     context = {
         "gameList": game_list
     }
-    print(game_list)
     return render(request, "lobby/index.html", context)
 
 @csrf_exempt

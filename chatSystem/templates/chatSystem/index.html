@@ -1,1 +1,13 @@
-<h1>Chat box goes here</h1>
+{% load static %}
+<link  href="{% static 'chatSystem/css/style.css' %}" rel="stylesheet">
+<div class="chatBox">
+    <div class="messagesBox" id="messagesBox">
+        {% for message in messages %}
+            <p class="messages">{{message.message}}</p>
+        {% empty %}
+            <p class="messages" id="noHistory">No chat history</p>
+        {% endfor %}
+    </div>
+        <input type="text" class="newMessageInput" id="newMessageInput" name="newMessageInput" placeholder="Type your message here">
+</div>
+<script src="{% static 'chatSystem/javascript/script.js' %}"></script>
