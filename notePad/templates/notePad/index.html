@@ -7,7 +7,19 @@
             <p>Accusation</p>
         </div>
         <div class="playerPortrait">
-            <img src="{% static 'notePad/images/mrGreen.jpg'%}">
+            {% if player.character == "Colonel Mustard" %}
+                <img src="{% static 'notePad/images/colMustard.jpg'%}">
+            {% elif player.character == "Professor Plum" %}
+                <img src="{% static 'notePad/images/profPlum.jpg'%}">
+            {% elif player.character == "Mrs. Peacock" %}
+                <img src="{% static 'notePad/images/mrsPeacock.jpg'%}">
+            {% elif player.character == "Miss Scarlet" %}
+                <img src="{% static 'notePad/images/missScarlet.jpg'%}">
+            {% elif player.character == "Mr. Green" %}
+                <img src="{% static 'notePad/images/mrGreen.jpg'%}">
+            {% elif player.character == "Mrs. White" %}
+                <img src="{% static 'notePad/images/mrsWhite.jpg'%}">
+            {% endif %}
         </div>
         <div>
             <p>View</p>
