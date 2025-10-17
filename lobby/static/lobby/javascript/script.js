@@ -5,21 +5,6 @@ let selectedGame;
 
 const currentPath = window.location.pathname;
 const gameId = currentPath.substring(currentPath.lastIndexOf('/') +1);
-// let socket = new WebSocket(`ws://127.0.0.1:8000/ws/test/`);
-
-// socket.onopen = function(e) {
-//     console.log("Websocket connection established.");
-//     socket.send(JSON.stringify({'message': 'Hello from client'}));
-// };
-
-// socket.onmessage = function(e) {
-//     const data = JSON.parse(e.data);
-//     console.log("Received message");
-// }
-
-// socket.onclose = function(e) {
-//     console.log("Websocket connection closed");
-// }
 
 startGame.addEventListener('click', async ()=> {
     try {
@@ -42,6 +27,8 @@ startGame.addEventListener('click', async ()=> {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         let data = await response.json();
+
+        document.cookie = `playerId=${data['playerId']}`;
         window.location.href = `/game/${data['gameId']}`;
 
     } catch (error) {
@@ -49,17 +36,72 @@ startGame.addEventListener('click', async ()=> {
     }
 })
 
-joinGame.addEventListener('click', ()=> {
-    window.location.href = `/game/${selectedGame.innerHTML}`
+joinGame.addEventListener('click', async ()=> {
+    document.cookie = `playerId=${crypto.randomUUID()}`;
+
+    const chosenCharacter = document.getElementById('charactersJoin').value;
+    const gameId = selectedGame.innerHTML;
+
+    const body = {
+        character: chosenCharacter,
+        gameId: gameId
+    };
+
+    const response = await fetch("/joinGame/", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    let data = await response.json();
+
+    window.location.href = `/game/${gameId}`;
 })
 
 for (const game of games) {
-    game.addEventListener('click', ()=> {
+    game.addEventListener('click', async ()=> {
         console.log('test');
         if (selectedGame) {
             selectedGame.classList.remove('selected');
         }
         selectedGame = game;
         selectedGame.classList.add('selected');
+        console.log(game.innerHTML);
+
+        const body = {
+            gameId: game.innerHTML
+        };
+
+        const response = await fetch("/getCharacters/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        let data = await response.json();
+        const characterDropDown = document.getElementById('charactersJoin');
+
+        while (characterDropDown.firstChild) {
+            characterDropDown.removeChild(characterDropDown.firstChild);
+        }
+
+        for (character of data.characters) {
+            console.log(character)
+            const dropDownValue = document.createElement("option");
+            dropDownValue.textContent = character;
+            dropDownValue.value = character;
+            characterDropDown.appendChild(dropDownValue);
+        }
+
     })
 }

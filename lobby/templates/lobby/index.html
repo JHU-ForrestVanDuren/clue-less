@@ -11,12 +11,19 @@
         <option value="Mr. Green">Mr. Green</option>
         <option value="Mrs. White">Mrs. White</option>
     </select>
-    <p>Select a game to join</p>
-    <button class="joinGameButton">Join Game</button>
-    <ul>
-        {% for game in gameList %}
-            <li class="game">{{game.id}}</li>
-        {% endfor %}
-    </ul>
+    {% if inGame %}
+        <p>Place current game player is in here</p>
+    {% else %}
+        <p>Select a game to join</p>
+        <button class="joinGameButton">Join Game</button>
+        <select name="characters" id="charactersJoin" class="characters">
+            <option value="Select a game to join">Select a game to join</option>
+        </select>
+        <ul>
+            {% for game in gameList %}
+                <li class="game">{{game.id}}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 </div>
 <script src="{% static 'lobby/javascript/script.js' %}"></script>
