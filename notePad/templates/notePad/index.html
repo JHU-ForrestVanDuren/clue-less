@@ -2,7 +2,7 @@
 <link  href="{% static 'notePad/css/style.css' %}" rel="stylesheet">
 <div class="notePadDiv">
     <div class="notePadTop">
-        <div>
+        <div class="makeAccusation" id="makeAccusation">
             <p>Make</p>
             <p>Accusation</p>
         </div>
@@ -21,7 +21,7 @@
                 <img src="{% static 'notePad/images/mrsWhite.jpg'%}">
             {% endif %}
         </div>
-        <div>
+        <div class="viewCards">
             <p>View</p>
             <p>Cards</p>
         </div>
@@ -169,3 +169,4 @@
         </tbody>
     </table>
 </div>
+<script src="{% static 'notePad/javascript/script.js' %}" defer></script>

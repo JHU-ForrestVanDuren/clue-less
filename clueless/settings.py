@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'gameBoard.apps.GameboardConfig',
     'notePad.apps.NotepadConfig',
     'chatSystem.apps.ChatsystemConfig',
-    'players.apps.PlayersConfig'
+    'players.apps.PlayersConfig',
+    'accusationPopup.apps.AccusationpopupConfig'
     
 ]
 

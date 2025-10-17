@@ -1,0 +1,62 @@
+{% load static %}
+<link  href="{% static 'accusationPopup/css/style.css' %}" rel="stylesheet">
+<div class="accusationPopup" id="accusationPopup">
+    <div class="roomSelection">
+        <div>
+            <p>Room</p>
+        </div>
+        <div>
+            <select name="rooms" id="rooms" class="rooms accusationDropdowns">
+                <option value="Hall">Hall</option>
+                <option value="Study">Study</option>
+                <option value="Ballroom">Ballroom</option>
+                <option value="Billiards Room">Billiards Room</option>
+                <option value="Dining Room">Dining Room</option>
+                <option value="Kitchen">Kitchen</option>
+                <option value="Lounge">Lounge</option>
+                <option value="Conservatory">Conservatory</option>
+                <option value="Library">Library</option>
+            </select>
+        </div>
+    </div>
+    <div class="weaponSelection">
+        <div>
+            <p>Weapon</p>
+        </div>
+        <div>
+            <select name="weapons" id="weapons" class="wespons accusationDropdowns">
+                <option value="Candlestick">Candlestick</option>
+                <option value="Rope">Rope</option>
+                <option value="Lead Pipe">Lead Pipe</option>
+                <option value="Knife">Knife</option>
+                <option value="Wrench">Wrench</option>
+                <option value="Revolver">Revolver</option>
+            </select>
+        </div>
+    </div>
+    <div class="characterSelection">
+        <div>
+            <p>Character</p>
+        </div>
+        <div>
+            <select name="characters" id="characters" class="characters accusationDropdowns">
+                <option value="Colonel Mustard">Colonel Mustard</option>
+                <option value="Professor Plum">Professor Plum</option>
+                <option value="Mrs. Peacock">Mrs. Peacock</option>
+                <option value="Miss Scarlet">Miss Scarlet</option>
+                <option value="Mr. Green">Mr. Green</option>
+                <option value="Mrs. White">Mrs. White</option>
+            </select>
+        </div>
+    </div>
+    <div>
+        <div>
+             <p>Accusation</p>
+        </div>
+        <div class="suggestOrAccuse">
+            <button>Make Suggestion</button>
+            <button>Make Accusation</button>
+        </div>
+    </div>
+   
+</div>

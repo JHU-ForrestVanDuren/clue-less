@@ -1,0 +1,47 @@
+.accusationPopup {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 12%;
+    width: 30%;
+    height: 20%;
+    border: 1px solid black;
+    margin: auto;
+    background-color: white;
+    display: none;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.accusationPopup p{
+    text-align: center;
+}
+
+.accusationPopup div{
+    display: flex;
+    flex-direction: column;
+    width: 25%;
+}
+
+.accusationPopup div > div{
+    border: 1px solid black;
+    width: 100%;
+}
+
+.accusationPopup div:nth-child(2){
+    border: 1px solid black;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.accusationDropdowns {
+    margin: 0 auto;
+    width: 70%;
+    margin-top: 10%;
+}
+
+.suggestOrAccuse {
+    display: flex;
+    justify-content: space-evenly;
+}

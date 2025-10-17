@@ -1,6 +1,6 @@
 {% load static %}
 <link  href="{% static 'gameBoard/css/style.css' %}" rel="stylesheet">
-<div class="ui">
+<div class="mainUi">
     <div class="boardAndChat">
         <div class="boardContainer">
             <div class="boardSquare" id="boardSquare">Kichen</div>
@@ -33,4 +33,5 @@
     </div>
     {% include 'notePad/index.html' %}
 </div>
+{% include 'accusationPopup/index.html' %}
 <script src="{% static 'gameBoard/javascript/script.js' %}"></script>

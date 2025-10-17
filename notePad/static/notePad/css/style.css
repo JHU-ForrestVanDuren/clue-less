@@ -25,6 +25,11 @@
 
 .notePadTop * p {
     margin: 0;
+    user-select: none;
+}
+
+.makeAccusation:hover, .viewCards:hover {
+    cursor: pointer;
 }
 
 .playerPortrait {
