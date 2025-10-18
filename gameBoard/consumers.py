@@ -34,7 +34,13 @@ class MyConsumer(WebsocketConsumer):
         elif messageType == "draw":
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name, {"type": "draw"}
-            )           
+            )
+        elif messageType == "suggestion":
+            message = text_data_json['message']
+            sender = text_data_json['sender']
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name, {"type": "suggestion", "message":message, "sender": sender}
+            )         
 
     # Receive message from room group
     def chat_message(self, event):
@@ -45,3 +51,8 @@ class MyConsumer(WebsocketConsumer):
 
     def draw(self, event):
         self.send(text_data=json.dumps({"type": "draw", "message": "Call get hand"}))
+
+    def suggestion(self, event):
+        message = event["message"]
+        sender = event["sender"]
+        self.send(text_data=json.dumps({"type": "suggestion", "message": message, "sender": sender}))

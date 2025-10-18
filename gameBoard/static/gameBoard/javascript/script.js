@@ -39,13 +39,11 @@ socket.onopen = function(e) {
 };
 
 socket.onmessage = function(e) {
-    console.log(e);
-    console.log('test1');
     const data = JSON.parse(e.data);
     const type = data['type'];
-    console.log(type);
+
     if (type == 'chat') {
-        console.log(type);
+    
         let noHistory = document.getElementById('noHistory');
         
         if (noHistory != null) {
@@ -61,6 +59,8 @@ socket.onmessage = function(e) {
         console.log("Received message");
     } else if (type == 'draw') {
         getHand();
+    } else if (type == 'suggestion') {
+        promptForCard(data);
     }
 
 }
@@ -71,8 +71,6 @@ socket.onclose = function(e) {
 
 async function getHand() {
     try {
-
-        console.log('get hand test1')
 
         const response = await fetch(`/game/getHand`, {
             method: 'GET',
@@ -106,4 +104,29 @@ function addHandToPlayer(hand) {
     }
 
 
+}
+
+function promptForCard(suggestion) {
+    //TODO: Actual logic for showing a card if you have a match
+    playerId = getCookie('playerId');
+    sender = suggestion['sender']
+    if (playerId != sender) {
+        alert(suggestion['message'].room + " " + suggestion['message'].weapon + " " + suggestion['message'].character);
+    }
+    
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') {
+        c = c.substring(1, c.length);
+        }
+        if (c.indexOf(nameEQ) === 0) {
+        return decodeURIComponent(c.substring(nameEQ.length, c.length));
+        }
+    }
+    return null;
 }

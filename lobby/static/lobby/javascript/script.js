@@ -65,13 +65,11 @@ joinGame.addEventListener('click', async ()=> {
 
 for (const game of games) {
     game.addEventListener('click', async ()=> {
-        console.log('test');
         if (selectedGame) {
             selectedGame.classList.remove('selected');
         }
         selectedGame = game;
         selectedGame.classList.add('selected');
-        console.log(game.innerHTML);
 
         const body = {
             gameId: game.innerHTML
@@ -96,7 +94,6 @@ for (const game of games) {
         }
 
         for (character of data.characters) {
-            console.log(character)
             const dropDownValue = document.createElement("option");
             dropDownValue.textContent = character;
             dropDownValue.value = character;
