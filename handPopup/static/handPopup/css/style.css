@@ -1,0 +1,19 @@
+.handPopup {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 12%;
+    width: 30%;
+    height: 20%;
+    border: 1px solid black;
+    margin: auto;
+    background-color: white;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.card {
+    margin: 0;
+}

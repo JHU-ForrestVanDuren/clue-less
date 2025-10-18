@@ -1,12 +1,30 @@
 const accusationButton = document.getElementById('makeAccusation');
-const accusationDropDown = document.getElementById('accusationPopup');
+const accusationPopup = document.getElementById('accusationPopup');
+const viewCardsButton = document.getElementById('viewCards')
+const handPopup = document.getElementById('handPopup')
 
 accusationButton.addEventListener("click", ()=> {
-    let accusationDropDownStyle = window.getComputedStyle(accusationDropDown);
 
-    if (accusationDropDownStyle.display == 'none') {
-        accusationDropDown.style.display = 'flex';
+    handPopup.style.display = 'none';
+
+    let accusationPopupStyle = window.getComputedStyle(accusationPopup);
+
+    if (accusationPopupStyle.display == 'none') {
+        accusationPopup.style.display = 'flex';
     } else {
-        accusationDropDown.style.display = 'none';
+        accusationPopup.style.display = 'none';
+    }
+})
+
+viewCardsButton.addEventListener("click", ()=> {
+
+    accusationPopup.style.display = 'none';
+
+    let handPopupStyle = window.getComputedStyle(handPopup);
+
+    if (handPopupStyle.display == 'none') {
+        handPopup.style.display = 'flex';
+    } else {
+        handPopup.style.display = 'none';
     }
 })

@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'notePad.apps.NotepadConfig',
     'chatSystem.apps.ChatsystemConfig',
     'players.apps.PlayersConfig',
-    'accusationPopup.apps.AccusationpopupConfig'
+    'accusationPopup.apps.AccusationpopupConfig',
+    'handPopup.apps.HandpopupConfig'
     
 ]
 

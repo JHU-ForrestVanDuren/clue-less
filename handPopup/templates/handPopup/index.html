@@ -1,0 +1,9 @@
+{% load static %}
+<link  href="{% static 'handPopup/css/style.css' %}" rel="stylesheet">
+<div class="handPopup" id="handPopup">
+    {% for card in hand %}
+        <p class="card">{{card}}</p>
+    {% empty %}
+
+    {% endfor %}
+</div>

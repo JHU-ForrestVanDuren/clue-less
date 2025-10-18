@@ -31,7 +31,8 @@ async function sendMessage() {
         }
 
         socket.send(JSON.stringify({
-            'message': newMessage.value
+            'message': newMessage.value,
+            'type': 'chat'
         }));
         newMessage.value = "";
 

@@ -19,3 +19,6 @@ class Cards(models.Model):
     value = models.CharField(primary_key=True, editable=False, max_length=100)
     type = models.CharField(editable=False, max_length=50)
     players_holding = models.ManyToManyField(Players)
+
+    def __str__(self):
+        return f"[{self.value},{self.type},{self.players_holding}]"
