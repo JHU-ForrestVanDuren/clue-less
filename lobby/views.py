@@ -74,7 +74,7 @@ def joinGame(request):
     game_id = body_json.get('gameId')
     game = ActiveGames.objects.get(id=game_id)
     players_in_game = Players.objects.filter(game=game).count()
-    player_uuid = request.COOKIES.get('playerId')
+    player_uuid = uuid.uuid4()
     new_player = Players(id=player_uuid, character=character, out_of_game=False, is_players_turn=False, player_number=players_in_game+1, current_position="Library", note_pad={}, game=game)
     new_player.save()
     data = {

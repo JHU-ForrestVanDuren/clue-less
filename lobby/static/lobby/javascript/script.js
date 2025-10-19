@@ -37,8 +37,7 @@ startGame.addEventListener('click', async ()=> {
 })
 
 joinGame.addEventListener('click', async ()=> {
-    document.cookie = `playerId=${crypto.randomUUID()}`;
-
+    
     const chosenCharacter = document.getElementById('charactersJoin').value;
     const gameId = selectedGame.innerHTML;
 
@@ -58,6 +57,9 @@ joinGame.addEventListener('click', async ()=> {
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    let data = await response.json();
+    document.cookie = `playerId=${data['playerId']}`;
 
     window.location.href = `/game/${gameId}`;
 })
