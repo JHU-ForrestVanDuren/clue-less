@@ -58,7 +58,6 @@ joinGame.addEventListener('click', async ()=> {
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
-    let data = await response.json();
 
     window.location.href = `/game/${gameId}`;
 })

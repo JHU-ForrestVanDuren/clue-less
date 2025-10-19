@@ -1,10 +1,11 @@
 from django.shortcuts import render
-from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from chatSystem.models import Messages
 from lobby.models import ActiveGames
 from players.models import Players, Cards
 from django.views.decorators.cache import cache_control
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 def index(request, game_id):
@@ -57,5 +58,28 @@ def getHand (request):
     data = {
         "hand": hand
     }
+
+    return JsonResponse(data)
+
+@csrf_exempt
+def checkWin(request):
+    body_unicode = request.body.decode('utf-8')
+    body_json = json.loads(body_unicode)
+    room = body_json.get('room')
+    weapon = body_json.get('weapon')
+    character = body_json.get('character')
+    game = ActiveGames.objects.get(id=body_json.get('gameId'))
+    win = False
+
+    if weapon == game.solution_weapon and character == game.solution_character and room == game.solution_room:
+        win = True
+
+    print(win)
+
+    data = {
+        "win": win
+    }
+
+    print(data['win'])
 
     return JsonResponse(data)

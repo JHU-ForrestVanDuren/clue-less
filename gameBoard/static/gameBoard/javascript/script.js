@@ -61,6 +61,8 @@ socket.onmessage = function(e) {
         getHand();
     } else if (type == 'suggestion') {
         promptForCard(data);
+    } else if (type == 'accusation') {
+        relayAccusationResult(data);
     }
 
 }
@@ -116,16 +118,37 @@ function promptForCard(suggestion) {
     
 }
 
-function getCookie(name) {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') {
-        c = c.substring(1, c.length);
+function relayAccusationResult(accusation) {
+
+    playerId = getCookie('playerId');
+    sender = accusation['sender'];
+    win = accusation['win'];
+
+    if (win) {
+        if (playerId != sender) {
+            alert(`Player: ${playerId}\n Won the game!`);
+        } else {
+            alert('You won the game!');
         }
-        if (c.indexOf(nameEQ) === 0) {
-        return decodeURIComponent(c.substring(nameEQ.length, c.length));
+    } else {
+        if (playerId != sender) {
+            alert(`Player: ${playerId}\n Lost the game.`);
+        } else {
+            alert("You lost the game.")
+        }
+    }
+}
+
+function getCookie(name) {
+    const cookies = document.cookie.split(';');
+
+    for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i];
+        cookie = cookie.trim();
+        splitCookie = cookie.split('=');
+        
+        if (splitCookie[0].trim() == name) {
+            return splitCookie[1].trim();
         }
     }
     return null;

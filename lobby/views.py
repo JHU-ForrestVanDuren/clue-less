@@ -1,7 +1,7 @@
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from lobby.models import ActiveGames
-from players.models import Players, Cards
+from players.models import Players
 import uuid
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -17,7 +17,6 @@ def index(request):
         in_game = True
     except:
         print("Player not in game")
-
 
     context = {
         "gameList": game_list,
