@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from lobby.models import ActiveGames
-from players.models import Players
+from players.models import Players, Cards
 import uuid
 import json
 import random
@@ -25,20 +25,19 @@ def index(request):
     }
     
     response = render(request, "lobby/index.html", context)
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0, proxy-revalidate'
-    response['Pragma'] = "no-cache"
-    response['Expires'] = "Wed, 11 Jan 1984 05:00:00 GMT"
 
     return response
 
 @csrf_exempt 
-@cache_control(no_cache=True, no_store=True, must_revalidate=True)
 def createGame(request):
     body_unicode = request.body.decode('utf-8')
     body_json = json.loads(body_unicode)
     character = body_json.get('character')
     game_uuid = uuid.uuid4()
     player_uuid = uuid.uuid4()
+    solution_character = Cards.objects.filter(type="Character").order_by('?').first().value
+    solution_weapon = Cards.objects.filter(type="Weapon").order_by('?').first().value
+    solution_room = Cards.objects.filter(type="Room").order_by('?').first().value
     InitPos = [
             "h-k-b",
             "h-b-c",
@@ -55,7 +54,7 @@ def createGame(request):
     ]
     startPos = random.choice(InitPos)
     posJson = json.dumps({str(player_uuid): startPos})
-    new_game = ActiveGames(id=game_uuid, num_of_players=1, solution_character='Mr. Green', solution_weapon="Revolver", solution_room="Library", playerPositions=posJson)
+    new_game = ActiveGames(id=game_uuid, num_of_players=1, solution_character=solution_character, solution_weapon=solution_weapon, solution_room=solution_room, playerPositions=posJson)
     new_game.save()
     new_player = Players(id=player_uuid, character=character, out_of_game=False, is_players_turn=True, player_number=1, current_position=startPos, note_pad={}, game=new_game)
     new_game.save()

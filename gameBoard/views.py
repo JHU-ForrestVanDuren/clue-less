@@ -134,7 +134,7 @@ def getValidMoves (request, game_id):
         "Hall": ["h-li-h", "h-lo-h", "h-h-s"],
         "Study": ["h-br-s", "h-h-s","Kitchen"]
     }
-    
+
     if currentRoom in RoomMoves:
         validMoves = RoomMoves[currentRoom]
         for others in players:
@@ -181,12 +181,8 @@ def checkWin(request):
     if weapon == game.solution_weapon and character == game.solution_character and room == game.solution_room:
         win = True
 
-    print(win)
-
     data = {
         "win": win
     }
-
-    print(data['win'])
 
     return JsonResponse(data)
