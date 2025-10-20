@@ -1,11 +1,11 @@
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from chatSystem.models import Messages
 from lobby.models import ActiveGames
 from players.models import Players, Cards
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
-import json
+import json, random
 
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 def index(request, game_id):
@@ -22,6 +22,46 @@ def index(request, game_id):
         "hand": hand
     }
     return render(request, "gameBoard/index.html", context)
+
+def getPositions (request, game_id):
+    game = ActiveGames.objects.get(id=game_id)
+    players = Players.objects.filter(game=game)
+    data = {}
+    for player in players:
+        data[str(player.id)] = {
+            "position": player.current_position,
+            "character": player.character
+        }
+        player.save()
+
+    return JsonResponse(data)
+
+def movePlayer (request, game_id, player_id, room):
+    player = Players.objects.get(id=player_id)
+    player.current_position = room
+    if not player.moved_by_sugg:
+        player.is_players_turn = False
+    player.save()
+
+    game = ActiveGames.objects.get(id=game_id)
+    players = Players.objects.filter(game=game)
+    game.turnNumber += 1
+    game.save()
+    data = {}
+    for player in players:
+        playerNum = player.player_number
+        if game.turnNumber % playerNum == 0:
+            player.is_players_turn == True
+        else: player.is_players_turn == False
+        data[str(player.id)] = {
+            "position": player.current_position,
+            "character": player.character,
+            "turn?": game.turnNumber,
+            "playerNum": game.turnNumber % playerNum
+        }
+        player.save()
+
+    return JsonResponse(data)
 
 def deal(request, game_id):
     game = ActiveGames.objects.get(id=game_id)
@@ -46,8 +86,69 @@ def deal(request, game_id):
             deal_to = 1
         else:
             deal_to = deal_to + 1
+
+    for player in players:
+        player.is_players_turn == False
+        player.save()
+    
+    game.turnNumber = 0
+    game.save()
     
     return HttpResponse()
+
+def getValidMoves (request, game_id):
+    players = Players.objects.filter(game=game_id)
+
+    playerId = request.COOKIES.get('playerId')
+    player = Players.objects.get(id=playerId)
+    currentRoom = player.current_position
+    
+    HallwayMoves = {
+        "h-k-b": ["Kitchen", "Ballroom"],
+        "h-b-c": ["Ballroom", "Conservatory"],
+        "h-k-dr": ["Kitchen", "DiningRoom"],
+        "h-b-li": ["Ballroom", "Library"],
+        "h-c-br": ["Conservatory","BilliardRoom"],
+        "h-dr-li": ["DiningRoom", "Library"],
+        "h-li-br": ["Library", "BilliardRoom"],
+        "h-dr-lo": ["DiningRoom","Lounge"],
+        "h-li-h": ["Library","Hall"],
+        "h-br-s": ["BilliardRoom","Study"],
+        "h-lo-h": ["Lounge", "Hall"],
+        "h-h-s": ["Hall", "Study"]
+    }
+
+    RoomMoves = {
+        "Kitchen": ["h-k-b", "h-k-dr","Study"],
+        "Ballroom": ["h-k-b", "h-b-c", "h-b-li"],
+        "Conservatory": ["h-b-c", "h-c-br","Lounge"],
+        "DiningRoom": ["h-k-dr", "h-dr-li"],
+        "Library": ["h-b-li", "h-dr-li", "h-li-br", "h-li-h"],
+        "BilliardRoom": ["h-c-br", "h-li-br", "h-br-s"],
+        "Lounge": ["h-dr-lo", "h-lo-h","Conservatory"],
+        "Hall": ["h-li-h", "h-lo-h", "h-h-s"],
+        "Study": ["h-br-s", "h-h-s","Kitchen"]
+    }
+    if currentRoom in RoomMoves:
+        validMoves = RoomMoves[currentRoom]
+        for others in players:
+            if others.id != player.id and others.current_position in validMoves:
+                validMoves.remove(others.current_position)
+        if player.moved_by_sugg == True:
+            validMoves.append(currentRoom)
+        data = {
+            "validRooms": validMoves
+        }
+    elif currentRoom in HallwayMoves:
+        validMoves = HallwayMoves[currentRoom]
+        data = {
+            "validRooms": validMoves
+        }
+    try:
+        return JsonResponse(data)
+    except: 
+        return HttpResponseBadRequest("<h1>Invalid Request Data<\h1>")
+
 
 def getHand (request):
     playerId = request.COOKIES.get('playerId')
