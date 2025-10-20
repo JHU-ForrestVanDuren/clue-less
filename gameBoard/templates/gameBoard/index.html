@@ -2,33 +2,34 @@
 <link  href="{% static 'gameBoard/css/style.css' %}" rel="stylesheet">
 <div class="mainUi">
     <button class="deal" id="deal">Deal</button>
+    <button class="render" id = "render">Render</button>
     <div class="boardAndChat">
-        <div class="boardContainer">
-            <div class="boardSquare" id="boardSquare">Kichen</div>
-            <div class="boardDiamond"></div>
-            <div class="boardSquare">Ballroom</div>
-            <div class="boardDiamond"></div>
-            <div class="boardSquare">Conservatory</div>
-            <div class="boardDiamond"></div>
+        <div class="boardContainer" id="board">
+            <div class="boardSquare" id="Kitchen">Kichen</div>
+            <div class="boardDiamond" id="h-k-b"></div>
+            <div class="boardSquare" id="Ballroom">Ballroom</div>
+            <div class="boardDiamond" id="h-b-c"></div>
+            <div class="boardSquare" id="Conservatory">Conservatory</div>
+            <div class="boardDiamond" id="h-k-dr"></div>
             <div class="fillSquare"></div>
-            <div class="boardDiamond"></div>
+            <div class="boardDiamond" id="h-b-li"></div>
             <div class="fillSquare"></div>
-            <div class="boardDiamond"></div>
-            <div class="boardSquare">Dining Room</div>
-            <div class="boardDiamond"></div>
-            <div class="boardSquare">Library</div>
-            <div class="boardDiamond"></div>
-            <div class="boardSquare">Billiard Room</div>
-            <div class="boardDiamond"></div>
+            <div class="boardDiamond" id="h-c-br"></div>
+            <div class="boardSquare" id="DiningRoom">Dining Room</div>
+            <div class="boardDiamond" id="h-dr-li"></div>
+            <div class="boardSquare" id="Library">Library</div>
+            <div class="boardDiamond" id="h-li-br"></div>
+            <div class="boardSquare" id="BilliardRoom">Billiard Room</div>
+            <div class="boardDiamond" id="h-br-lo"></div>
             <div class="fillSquare"></div>
-            <div class="boardDiamond"></div>
+            <div class="boardDiamond" id="h-li-h"></div>
             <div class="fillSquare"></div>
-            <div class="boardDiamond"></div>
-            <div class="boardSquare">Lounge</div>
-            <div class="boardDiamond"></div>
-            <div class="boardSquare">Hall</div>
-            <div class="boardDiamond"></div>
-            <div class="boardSquare">Study</div>
+            <div class="boardDiamond" id="h-br-s"></div>
+            <div class="boardSquare" id="Lounge">Lounge</div>
+            <div class="boardDiamond" id="h-lo-h"></div>
+            <div class="boardSquare" id="Hall">Hall</div>
+            <div class="boardDiamond" id="h-h-s"></div>
+            <div class="boardSquare" id="Study">Study</div>
         </div>
         {% include 'chatSystem/index.html' %}
     </div>

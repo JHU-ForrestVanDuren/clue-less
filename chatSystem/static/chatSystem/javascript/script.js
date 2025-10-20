@@ -8,31 +8,28 @@ newMessage.addEventListener('keydown', function(event) {
 });
 
 function getCookie(name) {
-    let name = cname + "=";
-    let ca = document.cookie.split(';')
-    for(let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0 ) {
-            return c.substring(name.length, c.length);
+    const cname = encodeURIComponent(name) + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf(decodeURIComponent(cname)) === 0) {
+            return decodeURIComponent(c.substring(cname.length));
         }
     }
-    return ""
+    return "";
 }
 
 async function sendMessage() {
     try {
-
         const currentPath = window.location.pathname;
-        const gameId = currentPath.substring(currentPath.lastIndexOf('/') +1);
-        const userId = getCookie(playerId)
+        const gameId = currentPath.substring(currentPath.lastIndexOf('/') + 1);
+
+        const userId = getCookie('playerId'); 
 
         const body = {
             message: newMessage.value,
             gameId: gameId,
-            playerId: userId
+            userId: userId
         };
 
         const response = await fetch("/chat/sendMessage/", {
@@ -48,11 +45,13 @@ async function sendMessage() {
         }
 
         socket.send(JSON.stringify({
+            'type': 'chat',
             'message': newMessage.value,
-            'type': 'chat'
+            'sender': userId,
+            'gameId': gameId
         }));
-        newMessage.value = "";
 
+        newMessage.value = "";
     } catch (error) {
         console.error(error);
     }

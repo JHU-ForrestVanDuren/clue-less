@@ -7,6 +7,7 @@ class ActiveGames(models.Model):
     solution_character = models.CharField(max_length=100)
     solution_room = models.CharField(max_length=100)
     solution_weapon = models.CharField(max_length=100)
+    playerPositions = models.JSONField(blank = True, null = True)
 
     def __str__(self):
-        return f"[{self.id},{self.num_of_players},{self.solution_character},{self.solution_room},{self.solution_weapon}]"
+        return f"[{self.id},{self.num_of_players},{self.solution_character},{self.solution_room},{self.solution_weapon},{self.playerPositions}]"

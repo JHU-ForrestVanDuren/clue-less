@@ -4,6 +4,7 @@ from lobby.models import ActiveGames
 from players.models import Players
 import uuid
 import json
+import random
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_control
 
@@ -38,9 +39,26 @@ def createGame(request):
     character = body_json.get('character')
     game_uuid = uuid.uuid4()
     player_uuid = uuid.uuid4()
-    new_game = ActiveGames(id=game_uuid, num_of_players=1, solution_character='Mr. Green', solution_weapon="Revolver", solution_room="Library")
+    InitPos = [
+            "h-k-b",
+            "h-b-c",
+            "h-k-dr",
+            "h-b-li",
+            "h-c-br",
+            "h-dr-li",
+            "h-li-br",
+            "h-br-lo",
+            "h-li-h",
+            "h-br-s",
+            "h-lo-h",
+            "h-h-s"
+    ]
+    startPos = random.choice(InitPos)
+    posJson = json.dumps({str(player_uuid): startPos})
+    new_game = ActiveGames(id=game_uuid, num_of_players=1, solution_character='Mr. Green', solution_weapon="Revolver", solution_room="Library", playerPositions=posJson)
     new_game.save()
-    new_player = Players(id=player_uuid, character=character, out_of_game=False, is_players_turn=True, player_number=1, current_position="Library", note_pad={}, game=new_game)
+    new_player = Players(id=player_uuid, character=character, out_of_game=False, is_players_turn=True, player_number=1, current_position=startPos, note_pad={}, game=new_game)
+    new_game.save()
     new_player.save()
     data = {
         'gameId': str(game_uuid),
@@ -75,7 +93,24 @@ def joinGame(request):
     game = ActiveGames.objects.get(id=game_id)
     players_in_game = Players.objects.filter(game=game).count()
     player_uuid = request.COOKIES.get('playerId')
-    new_player = Players(id=player_uuid, character=character, out_of_game=False, is_players_turn=False, player_number=players_in_game+1, current_position="Library", note_pad={}, game=game)
+    usedPos = json.loads(game.playerPositions).values()
+    validPos = [
+            "h-k-b",
+            "h-b-c",
+            "h-k-dr",
+            "h-b-li",
+            "h-c-br",
+            "h-dr-li",
+            "h-li-br",
+            "h-br-lo",
+            "h-li-h",
+            "h-br-s",
+            "h-lo-h",
+            "h-h-s"
+    ]
+    for pos in usedPos:
+        validPos.remove(pos)
+    new_player = Players(id=player_uuid, character=character, out_of_game=False, is_players_turn=False, player_number=players_in_game+1, current_position=random.choice(validPos), note_pad={}, game=game)
     new_player.save()
     data = {
         'gameId': str(game_id),

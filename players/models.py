@@ -8,7 +8,8 @@ class Players(models.Model):
     out_of_game = models.BooleanField()
     is_players_turn = models.BooleanField()
     player_number = models.IntegerField()
-    current_position = models.CharField(max_length=100)
+    current_position = models.CharField(max_length=100, null=True)
+    moved_by_sugg = models.BooleanField(default=False)
     note_pad = models.JSONField()
     game = models.ForeignKey(ActiveGames, on_delete=models.CASCADE)
 

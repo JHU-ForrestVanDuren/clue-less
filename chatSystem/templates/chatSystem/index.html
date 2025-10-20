@@ -3,7 +3,8 @@
 <div class="chatBox">
     <div class="messagesBox" id="messagesBox">
         {% for message in messages %}
-            <p class="messages">{{message.author}}: {{message.message}}</p>
+            <p class="messages">{{ message.author.character }}: {{ message.message }}</p>
+
         {% empty %}
             <p class="messages" id="noHistory">No chat history</p>
         {% endfor %}
