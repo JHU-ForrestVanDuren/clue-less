@@ -4,12 +4,14 @@ Run these commands in order to get started
     python -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
+    python manage.py migrate
     python manage.py runserver
 
 # **Windows:**
     python -m venv venv
     ./venv/Scripts/activate
     pip install -r requirements.txt
+    python manage.py migrate
     python manage.py runserver
 
 Note that after you've created your venv the first time you shouldn't need to do it again. You'll need to activate it each time you open a new terminal session. And you may occasionally need to rerun the pip command if the requirements have changed since the last time you did it. 
