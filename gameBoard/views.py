@@ -127,13 +127,14 @@ def getValidMoves (request, game_id):
         "Kitchen": ["h-k-b", "h-k-dr","Study"],
         "Ballroom": ["h-k-b", "h-b-c", "h-b-li"],
         "Conservatory": ["h-b-c", "h-c-br","Lounge"],
-        "DiningRoom": ["h-k-dr", "h-dr-li"],
+        "DiningRoom": ["h-k-dr", "h-dr-li", "h-dr-lo"],
         "Library": ["h-b-li", "h-dr-li", "h-li-br", "h-li-h"],
         "BilliardRoom": ["h-c-br", "h-li-br", "h-br-s"],
         "Lounge": ["h-dr-lo", "h-lo-h","Conservatory"],
         "Hall": ["h-li-h", "h-lo-h", "h-h-s"],
         "Study": ["h-br-s", "h-h-s","Kitchen"]
     }
+    
     if currentRoom in RoomMoves:
         validMoves = RoomMoves[currentRoom]
         for others in players:

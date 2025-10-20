@@ -14,7 +14,7 @@ class Players(models.Model):
     game = models.ForeignKey(ActiveGames, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"[{self.id},{self.character},{self.game}]"
+        return f"[{self.id},{self.character},{self.game},{self.current_position}]"
 
 class Cards(models.Model):
     value = models.CharField(primary_key=True, editable=False, max_length=100)

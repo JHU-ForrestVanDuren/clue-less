@@ -47,7 +47,7 @@ def createGame(request):
             "h-c-br",
             "h-dr-li",
             "h-li-br",
-            "h-br-lo",
+            "h-dr-lo",
             "h-li-h",
             "h-br-s",
             "h-lo-h",
@@ -91,7 +91,8 @@ def joinGame(request):
     character = body_json.get('character')
     game_id = body_json.get('gameId')
     game = ActiveGames.objects.get(id=game_id)
-    players_in_game = Players.objects.filter(game=game).count()
+    players = Players.objects.filter(game=game)
+    players_in_game = players.count()
     player_uuid = uuid.uuid4()
     usedPos = json.loads(game.playerPositions).values()
     game.num_of_players += 1
@@ -104,14 +105,14 @@ def joinGame(request):
             "h-c-br",
             "h-dr-li",
             "h-li-br",
-            "h-br-lo",
+            "h-dr-lo",
             "h-li-h",
             "h-br-s",
             "h-lo-h",
             "h-h-s"
     ]
-    for pos in usedPos:
-        validPos.remove(pos)
+    for pos in players:
+        validPos.remove(pos.current_position)
     new_player = Players(id=player_uuid, character=character, out_of_game=False, is_players_turn=False, player_number=players_in_game+1, current_position=random.choice(validPos), note_pad={}, game=game)
     new_player.save()
     data = {
