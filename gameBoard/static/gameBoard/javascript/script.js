@@ -5,13 +5,39 @@ currentOrigin = currentOrigin.substring(currentOrigin.indexOf('/'));
 let socket = new WebSocket(`ws:${currentOrigin}/ws/game/${gameId}`);
 
 const dealButton = document.getElementById('deal');
-const renderButton = document.getElementById('render')
+const renderButton = document.getElementById('render');
+
+playerNumber = getCookie('playerNumber');
+turnNumber = getCookie('turnNumber');
+
+window.onload = async function() {
+    try {
+
+        const response = await fetch(`/game/getPositions/${gameId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        let data = await response.json();
+        
+        socket.send(JSON.stringify({
+            'type': 'move',
+            'message': data
+        }));
+       
+    } catch (error) {
+        console.error(error);
+    }
+}
 
 dealButton.addEventListener('click', async ()=> {
     try {
-
-        const currentPath = window.location.pathname;
-        const gameId = currentPath.substring(currentPath.lastIndexOf('/') +1);
 
         const response = await fetch(`/game/deal/${gameId}`, {
             method: 'GET',
@@ -76,7 +102,6 @@ socket.onmessage = function(e) {
             noHistory.remove();
         }
 
-        
         const chatBox = document.getElementById('messagesBox');
         const newMessage = document.createElement("p");
         const who = data['sender_character']
@@ -86,14 +111,17 @@ socket.onmessage = function(e) {
         chatBox.scrollTop = chatBox.scrollHeight;
         console.log("Received message");
     } else if (type == 'draw') {
-        getValidMoves();
         getHand();
     } else if (type == 'suggestion') {
         promptForCard(data);
     } else if (type == 'accusation') {
         relayAccusationResult(data);
+    } else if (type == 'move') {
+        renderPositions(data['message']);
+        if (playerNumber == turnNumber) {
+             getValidMoves();
+        }
     }
-
 }
 
 socket.onclose = function(e) {
@@ -228,6 +256,12 @@ function makeMoveHandler(roomId) {
             }
 
             const data = await response.json();
+
+            socket.send(JSON.stringify({
+                'type': 'move',
+                'message': data
+            }));
+
             renderPositions(data);
         } catch (error) {
             console.error('handleMoveForRoom error for', roomId, error);
@@ -310,10 +344,10 @@ function relayAccusationResult(accusation) {
 }
 
 function getCookie(name) {
-  const cookies = document.cookie.split('; ')
+    const cookies = document.cookie.split('; ')
     .map(c => c.split('='))
     .map(([key, value]) => [key, decodeURIComponent(value)]);
 
-  const match = cookies.find(([key]) => key === name);
-  return match ? match[1] : null;
+    const match = cookies.find(([key]) => key === name);
+    return match ? match[1] : null;
 }

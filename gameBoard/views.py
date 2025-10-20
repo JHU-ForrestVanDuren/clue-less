@@ -21,7 +21,12 @@ def index(request, game_id):
         "player": player,
         "hand": hand
     }
-    return render(request, "gameBoard/index.html", context)
+
+    response = render(request, "gameBoard/index.html", context)
+    response.set_cookie('playerNumber', player.player_number)
+    response.set_cookie('turnNumber', '1')
+
+    return response
 
 def getPositions (request, game_id):
     game = ActiveGames.objects.get(id=game_id)

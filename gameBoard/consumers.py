@@ -39,9 +39,8 @@ class MyConsumer(WebsocketConsumer):
             )
         elif messageType == "move":
             message = text_data_json['message']
-            sender = text_data_json['sender']
             async_to_sync(self.channel_layer.group_send)(
-                self.room_group_name, {"type": "move", "message":message, "sender": sender}
+                self.room_group_name, {"type": "move", "message":message}
             ) 
         elif messageType == "suggestion":
             message = text_data_json['message']
@@ -75,8 +74,7 @@ class MyConsumer(WebsocketConsumer):
 
     def move(self, event):
         message = event["message"]
-        sender = event["sender"]
-        self.send(text_data=json.dumps({"type": "move", "message": message, "sender": sender}))
+        self.send(text_data=json.dumps({"type": "move", "message": message}))
 
     def suggestion(self, event):
         message = event["message"]
