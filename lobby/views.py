@@ -94,6 +94,8 @@ def joinGame(request):
     players_in_game = Players.objects.filter(game=game).count()
     player_uuid = request.COOKIES.get('playerId')
     usedPos = json.loads(game.playerPositions).values()
+    game.num_of_players += 1
+    game.save()
     validPos = [
             "h-k-b",
             "h-b-c",

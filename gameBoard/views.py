@@ -39,11 +39,29 @@ def getPositions (request, game_id):
 def movePlayer (request, game_id, player_id, room):
     player = Players.objects.get(id=player_id)
     player.current_position = room
+    if not player.moved_by_sugg:
+        player.is_players_turn = False
     player.save()
 
-    getPositions(request,game_id)
+    game = ActiveGames.objects.get(id=game_id)
+    players = Players.objects.filter(game=game)
+    game.turnNumber += 1
+    game.save()
+    data = {}
+    for player in players:
+        playerNum = player.player_number
+        if game.turnNumber % playerNum == 0:
+            player.is_players_turn == True
+        else: player.is_players_turn == False
+        data[str(player.id)] = {
+            "position": player.current_position,
+            "character": player.character,
+            "turn?": game.turnNumber,
+            "playerNum": game.turnNumber % playerNum
+        }
+        player.save()
 
-    return HttpResponse()
+    return JsonResponse(data)
 
 def deal(request, game_id):
     game = ActiveGames.objects.get(id=game_id)
@@ -68,8 +86,15 @@ def deal(request, game_id):
             deal_to = 1
         else:
             deal_to = deal_to + 1
+
+    for player in players:
+        player.is_players_turn == False
+        player.save()
     
-    return HttpResponse()
+    game.turnNumber = 0
+    game.save()
+    
+    return HttpResponse(turnOrder)
 
 def getValidMoves (request, game_id):
     players = Players.objects.filter(game=game_id)
@@ -86,7 +111,7 @@ def getValidMoves (request, game_id):
         "h-c-br": ["Conservatory","BilliardRoom"],
         "h-dr-li": ["DiningRoom", "Library"],
         "h-li-br": ["Library", "BilliardRoom"],
-        "h-br-lo": ["BilliardRoom","Lounge"],
+        "h-dr-lo": ["DiningRoom","Lounge"],
         "h-li-h": ["Library","Hall"],
         "h-br-s": ["BilliardRoom","Study"],
         "h-lo-h": ["Lounge", "Hall"],
@@ -99,12 +124,11 @@ def getValidMoves (request, game_id):
         "Conservatory": ["h-b-c", "h-c-br","Lounge"],
         "DiningRoom": ["h-k-dr", "h-dr-li"],
         "Library": ["h-b-li", "h-dr-li", "h-li-br", "h-li-h"],
-        "BilliardRoom": ["h-c-br", "h-li-br", "h-br-lo", "h-br-s"],
-        "Lounge": ["h-br-lo", "h-lo-h","Conservatory"],
+        "BilliardRoom": ["h-c-br", "h-li-br", "h-br-s"],
+        "Lounge": ["h-dr-lo", "h-lo-h","Conservatory"],
         "Hall": ["h-li-h", "h-lo-h", "h-h-s"],
         "Study": ["h-br-s", "h-h-s","Kitchen"]
     }
-
     if currentRoom in RoomMoves:
         validMoves = RoomMoves[currentRoom]
         for others in players:

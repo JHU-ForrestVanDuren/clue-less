@@ -172,11 +172,10 @@ async function getValidMoves() {
 
 function renderPositions(positions) {
     document.querySelectorAll('.player-dot').forEach(dot => dot.remove());
-
-    player = getCookie('playerId');
-    currentPlayerPosDict = positions[player];
-    activePlayerDiv = document.getElementById(currentPlayerPosDict["position"])
-    activePlayerDiv.classList.add('active-room')
+    document.querySelectorAll(`[tag*="room"]`).forEach(element => {
+        element.classList.remove('active-room');
+        element.classList.remove('valid-move');
+    });
 
     const playerColors = {
         'Miss Scarlet': '#d00000',
@@ -204,13 +203,66 @@ function renderPositions(positions) {
     }
 }
 
+const moveHandlersByRoom = new Map();
+
+function makeMoveHandler(roomId) {
+    return async function handleMoveForRoom(event) {
+        try {
+            const roomElement = event.currentTarget;
+            const clickedRoomId = roomElement.id;
+
+            const currentPath = window.location.pathname;
+            const gameId = currentPath.substring(currentPath.lastIndexOf('/') + 1);
+
+            const player = getCookie("playerId");
+
+            const response = await fetch(`/game/movePlayer/${gameId}/${player}/${clickedRoomId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            renderPositions(data);
+        } catch (error) {
+            console.error('handleMoveForRoom error for', roomId, error);
+        }
+    };
+}
+
 function renderValidMoves(roomsJSON) {
-    const validList = roomsJSON["validRooms"];
+    const validList = roomsJSON["validRooms"] || [];
+
+    clearValidMoves();
 
     for (let i = 0; i < validList.length; i++) {
-        const roomElement = document.getElementById(validList[i]);
-        roomElement.classList.add('valid-move')
+        const id = validList[i];
+        const roomElement = document.getElementById(id);
+        if (!roomElement) continue;
+
+        roomElement.classList.add('valid-move');
+
+        const handler = makeMoveHandler(id);
+        moveHandlersByRoom.set(id, handler);
+
+        roomElement.addEventListener('click', handler);
     }
+}
+
+function clearValidMoves() {
+    for (const [roomId, handler] of moveHandlersByRoom.entries()) {
+        const el = document.getElementById(roomId);
+        if (el) {
+            el.classList.remove('valid-move');
+            el.removeEventListener('click', handler);
+        }
+    }
+    moveHandlersByRoom.clear();
 }
 
 function addHandToPlayer(hand) {
