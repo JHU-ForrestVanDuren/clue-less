@@ -60,6 +60,29 @@
   display: none;
 }
 
+.showCard {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 12%;
+  width: 30%;
+  height: 20%;
+  border: 1px solid black;
+  margin: auto;
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
+.showCard button {
+  width: 100%;
+}
+
+.showCard p {
+  text-align: center;
+}
+
 @keyframes breathe-halo {
   0% {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.7); /* Subtle initial glow */

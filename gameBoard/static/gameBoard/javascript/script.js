@@ -6,7 +6,6 @@ let socket = new WebSocket(`ws:${currentOrigin}/ws/game/${gameId}`);
 
 const dealButton = document.getElementById('deal');
 const renderButton = document.getElementById('render');
-const makeSuggestionButton = document.getElementById('suggest');
 
 playerNumber = getCookie('playerNumber');
 playerId = getCookie('playerId');
@@ -133,29 +132,11 @@ socket.onmessage = function(e) {
             currentRoomIsHallway = currentRoom.includes('-');
             document.cookie = `currentRoomIsHallway=${currentRoomIsHallway}`;
             document.cookie = `currentRoom=${currentRoom}`;
+
             if (!hasMoved) {
                 getValidMoves();
             } else if (!currentRoomIsHallway) {
                 makeSuggestionButton.style.display = 'inline-block'
-                makeSuggestionButton.addEventListener("click", ()=>{
-                    const room = document.getElementById('rooms').value;
-                    const weapon = document.getElementById('weapons').value;
-                    const character = document.getElementById('characters').value
-
-                    const suggestion = {
-                        room: room,
-                        weapon: weapon,
-                        character: character 
-                    };
-
-                    playerId = getCookie('playerId');
-
-                    socket.send(JSON.stringify({
-                        "type": "suggestion",
-                        "message": suggestion,
-                        "sender": playerId
-                    }))
-                })
             }
         }
     }
@@ -353,12 +334,31 @@ function addHandToPlayer(hand) {
 
 }
 
-function promptForCard(suggestion) {
+function promptForCard(suggestionData) {
     //TODO: Actual logic for showing a card if you have a match
     playerId = getCookie('playerId');
-    sender = suggestion['sender']
+    sender = suggestionData['sender']
     if (playerId != sender) {
-        alert(suggestion['message'].room + " " + suggestion['message'].weapon + " " + suggestion['message'].character);
+        suggestion = suggestionData['message'];
+        // alert(suggestion['message'].room + " " + suggestion['message'].weapon + " " + suggestion['message'].character);
+        matches = [];
+        cards = document.getElementsByClassName('card');
+        const showCardDiv = document.createElement('div');
+        showCardDiv.classList.add('showCard');
+        document.body.appendChild(showCardDiv);
+        for (card of cards) {
+            if (card.innerHTML.trim() == suggestion.room.trim() || card.innerHTML.trim() == suggestion.weapon.trim() || card.innerHTML.trim() == suggestion.character.trim()) {
+                const matchedCardDiv = document.createElement('div');
+                const matchedCard = document.createElement('p');
+                const showCardButton = document.createElement('button');
+                matchedCard.innerHTML = card.innerHTML.trim();
+                showCardButton.classList.add('showCardButton');
+                showCardButton.innerHTML = "Show this card";
+                matchedCardDiv.appendChild(matchedCard);
+                matchedCardDiv.appendChild(showCardButton);
+                showCardDiv.appendChild(matchedCardDiv);
+            }
+        }
     }
     
 }
