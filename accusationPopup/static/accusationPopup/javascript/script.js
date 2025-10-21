@@ -1,7 +1,7 @@
 const makeSuggestionButton = document.getElementById('suggest');
 const makeAccusationButton = document.getElementById('accuse');
 
-makeSuggestionButton.addEventListener("click", ()=>{
+makeSuggestionButton.addEventListener("click", async ()=>{
     const room = document.getElementById('rooms').value;
     const weapon = document.getElementById('weapons').value;
     const character = document.getElementById('characters').value
@@ -12,13 +12,40 @@ makeSuggestionButton.addEventListener("click", ()=>{
         character: character 
     };
 
+    const body = {
+        suggestion: suggestion,
+        gameId: gameId
+    }
+
     playerId = getCookie('playerId');
 
-    socket.send(JSON.stringify({
-        "type": "suggestion",
-        "message": suggestion,
-        "sender": playerId
-    }))
+    try {
+        const response = await fetch("getFirstPlayerWithMatch", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        socket.send(JSON.stringify({
+            "type": "suggestion",
+            "message": suggestion,
+            "sender": playerId,
+            "matchedPlayerNumber": data['playerNumber']
+        }))
+
+    } catch(error) {
+        console.log(error);
+    }
+
+
 })
 
 makeAccusationButton.addEventListener("click", async ()=>{

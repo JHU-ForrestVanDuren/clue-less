@@ -47,14 +47,20 @@ class MyConsumer(WebsocketConsumer):
         elif messageType == "suggestion":
             message = text_data_json['message']
             sender = text_data_json['sender']
+            matchedPlayerNumber = text_data_json['matchedPlayerNumber']
             async_to_sync(self.channel_layer.group_send)(
-                self.room_group_name, {"type": "suggestion", "message":message, "sender": sender}
+                self.room_group_name, {"type": "suggestion", "message":message, "sender": sender, "matchedPlayerNumber": matchedPlayerNumber}
             ) 
         elif messageType == "accusation":
             message = text_data_json
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name, {"type": "accusation", "message":message}
-            )         
+            )    
+        elif messageType == "suggestionResponse":
+            message = text_data_json
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name, {"type": "suggestionResponse", "message":message}
+            )      
 
     # Receive chat message from room group
     def chat_message(self, event):
@@ -81,7 +87,8 @@ class MyConsumer(WebsocketConsumer):
     def suggestion(self, event):
         message = event["message"]
         sender = event["sender"]
-        self.send(text_data=json.dumps({"type": "suggestion", "message": message, "sender": sender}))
+        matchedPlayerNumber = event["matchedPlayerNumber"]
+        self.send(text_data=json.dumps({"type": "suggestion", "message": message, "sender": sender, "matchedPlayerNumber": matchedPlayerNumber}))
 
     def accusation(self, event):
         data = event['message']
@@ -89,3 +96,9 @@ class MyConsumer(WebsocketConsumer):
         sender = data["sender"]
         win = data["win"]
         self.send(text_data=json.dumps({"type": "accusation", "message": message, "sender": sender, "win": win}))
+
+    def suggestionResponse(self, event):
+        data = event["message"]
+        message = data['message']
+        senderCharacter = data['senderCharacter']
+        self.send(text_data=json.dumps({"type": "suggestionResponse", "message": message, "senderCharacter": senderCharacter}))

@@ -5,7 +5,7 @@ from lobby.models import ActiveGames
 from players.models import Players, Cards
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
-import json, random
+import json
 
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 def index(request, game_id):
@@ -25,6 +25,7 @@ def index(request, game_id):
     response = render(request, "gameBoard/index.html", context)
     response.set_cookie('playerNumber', player.player_number)
     response.set_cookie('turnNumber', '1')
+    response.set_cookie('playerCharacter', player.character)
 
     return response
 
@@ -186,3 +187,42 @@ def checkWin(request):
     }
 
     return JsonResponse(data)
+
+@csrf_exempt
+def getFirstPlayerWithMatch(request):
+    body_unicode = request.body.decode('utf-8')
+    body_json = json.loads(body_unicode)
+    suggestion = body_json.get('suggestion')
+    game_id = body_json.get('gameId')
+    game = ActiveGames.objects.get(id=game_id)
+    turn_number = game.turnNumber
+    num_of_players = game.num_of_players
+    players = Players.objects.filter(game=game).order_by('player_number')
+    player_number = 0
+    i = turn_number
+
+    while (i < num_of_players and player_number == 0):
+        cards = Cards.objects.filter(players_holding=players[i].id)
+        for card in cards:
+            if card.value == suggestion['room'] or card.value == suggestion['character'] or card.value == suggestion['weapon']:
+                player_number = i+1
+
+        i = i+1
+
+    i = 0
+
+    while (i < turn_number - 1 and player_number == 0):
+        cards = Cards.objects.filter(players_holding=players[i].id)
+        for card in cards:
+            if card.value == suggestion['room'] or card.value == suggestion['character'] or card.value == suggestion['weapon']:
+                player_number = i+1
+
+        i = i+1        
+
+    data = {
+        "playerNumber": player_number
+    }
+
+    return JsonResponse(data)
+
+    
