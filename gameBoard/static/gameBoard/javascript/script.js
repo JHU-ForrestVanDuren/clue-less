@@ -10,32 +10,6 @@ const renderButton = document.getElementById('render');
 playerNumber = getCookie('playerNumber');
 turnNumber = getCookie('turnNumber');
 
-window.onload = async function() {
-    try {
-
-        const response = await fetch(`/game/getPositions/${gameId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        let data = await response.json();
-        
-        socket.send(JSON.stringify({
-            'type': 'move',
-            'message': data
-        }));
-       
-    } catch (error) {
-        console.error(error);
-    }
-}
-
 dealButton.addEventListener('click', async ()=> {
     try {
 
@@ -86,8 +60,31 @@ renderButton.addEventListener('click', async ()=> {
 })
 
 
-socket.onopen = function(e) {
+socket.onopen = async function(e) {
     console.log("Websocket connection established.");
+    try {
+
+        const response = await fetch(`/game/getPositions/${gameId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        let data = await response.json();
+        
+        socket.send(JSON.stringify({
+            'type': 'move',
+            'message': data
+        }));
+       
+    } catch (error) {
+        console.error(error);
+    }
 };
 
 socket.onmessage = function(e) {

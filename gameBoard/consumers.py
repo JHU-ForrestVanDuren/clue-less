@@ -27,6 +27,8 @@ class MyConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         messageType = text_data_json["type"]
 
+        print(f'WebSocket Message received for room {self.room_name} of type {messageType}. Broadcasting to all clients.')
+
         if messageType == "chat":
             message = text_data_json["message"]
             sender = text_data_json['sender']

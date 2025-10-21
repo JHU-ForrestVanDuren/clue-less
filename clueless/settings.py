@@ -140,3 +140,5 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer"
     }
 }
+
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
