@@ -6,9 +6,19 @@ let socket = new WebSocket(`ws:${currentOrigin}/ws/game/${gameId}`);
 
 const dealButton = document.getElementById('deal');
 const renderButton = document.getElementById('render');
+const makeSuggestionButton = document.getElementById('suggest');
 
 playerNumber = getCookie('playerNumber');
+playerId = getCookie('playerId');
 turnNumber = getCookie('turnNumber');
+gameStarted = getCookie('gameStarted') == 'true';
+hasMoved = getCookie('hasMoved') == 'true';
+currentRoomIsHallway = getCookie('currentRoomIsHallway') == 'true';
+currentRoom = getCookie('currentRoom');
+
+if (playerNumber == 1 && !gameStarted) {
+    dealButton.style.display = 'inline-block';
+}
 
 dealButton.addEventListener('click', async ()=> {
     try {
@@ -29,6 +39,8 @@ dealButton.addEventListener('click', async ()=> {
         socket.send(JSON.stringify({
             'type': 'draw'
         }));
+
+        dealButton.style.display = 'none';
 
     } catch (error) {
         console.error(error);
@@ -76,7 +88,7 @@ socket.onopen = async function(e) {
         }
 
         let data = await response.json();
-        
+     
         socket.send(JSON.stringify({
             'type': 'move',
             'message': data
@@ -108,6 +120,7 @@ socket.onmessage = function(e) {
         chatBox.scrollTop = chatBox.scrollHeight;
         console.log("Received message");
     } else if (type == 'draw') {
+        document.cookie = "gameStarted=true";
         getHand();
     } else if (type == 'suggestion') {
         promptForCard(data);
@@ -116,7 +129,34 @@ socket.onmessage = function(e) {
     } else if (type == 'move') {
         renderPositions(data['message']);
         if (playerNumber == turnNumber) {
-             getValidMoves();
+            currentRoom = data['message'][playerId]['position'];
+            currentRoomIsHallway = currentRoom.includes('-');
+            document.cookie = `currentRoomIsHallway=${currentRoomIsHallway}`;
+            document.cookie = `currentRoom=${currentRoom}`;
+            if (!hasMoved) {
+                getValidMoves();
+            } else if (!currentRoomIsHallway) {
+                makeSuggestionButton.style.display = 'inline-block'
+                makeSuggestionButton.addEventListener("click", ()=>{
+                    const room = document.getElementById('rooms').value;
+                    const weapon = document.getElementById('weapons').value;
+                    const character = document.getElementById('characters').value
+
+                    const suggestion = {
+                        room: room,
+                        weapon: weapon,
+                        character: character 
+                    };
+
+                    playerId = getCookie('playerId');
+
+                    socket.send(JSON.stringify({
+                        "type": "suggestion",
+                        "message": suggestion,
+                        "sender": playerId
+                    }))
+                })
+            }
         }
     }
 }
@@ -254,12 +294,16 @@ function makeMoveHandler(roomId) {
 
             const data = await response.json();
 
+            document.cookie = "hasMoved=true";
+            hasMoved = true;
+
             socket.send(JSON.stringify({
                 'type': 'move',
                 'message': data
             }));
 
             renderPositions(data);
+            
         } catch (error) {
             console.error('handleMoveForRoom error for', roomId, error);
         }

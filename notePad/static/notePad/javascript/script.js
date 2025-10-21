@@ -1,20 +1,22 @@
+const viewCardsButton = document.getElementById('viewCards');
+const handPopup = document.getElementById('handPopup');
 const accusationButton = document.getElementById('makeAccusation');
 const accusationPopup = document.getElementById('accusationPopup');
-const viewCardsButton = document.getElementById('viewCards')
-const handPopup = document.getElementById('handPopup')
 
-accusationButton.addEventListener("click", ()=> {
+if (playerNumber == turnNumber) {
+    accusationButton.style.opacity = "1";
+    accusationButton.addEventListener("click", ()=> {
+        handPopup.style.display = 'none';
 
-    handPopup.style.display = 'none';
+        let accusationPopupStyle = window.getComputedStyle(accusationPopup);
 
-    let accusationPopupStyle = window.getComputedStyle(accusationPopup);
-
-    if (accusationPopupStyle.display == 'none') {
-        accusationPopup.style.display = 'flex';
-    } else {
-        accusationPopup.style.display = 'none';
-    }
-})
+        if (accusationPopupStyle.display == 'none') {
+            accusationPopup.style.display = 'flex';
+        } else {
+            accusationPopup.style.display = 'none';
+        }
+    })
+}
 
 viewCardsButton.addEventListener("click", ()=> {
 

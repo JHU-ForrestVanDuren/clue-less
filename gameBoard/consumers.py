@@ -75,7 +75,7 @@ class MyConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({"type": "draw", "message": "Call get hand"}))
 
     def move(self, event):
-        message = event["message"]
+        message = event['message']
         self.send(text_data=json.dumps({"type": "move", "message": message}))
 
     def suggestion(self, event):

@@ -56,6 +56,10 @@
     animation: breathe-halo 4s infinite alternate ease-in-out;
 }
 
+.deal {
+  display: none;
+}
+
 @keyframes breathe-halo {
   0% {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.7); /* Subtle initial glow */

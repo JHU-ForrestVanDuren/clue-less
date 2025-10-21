@@ -110,8 +110,8 @@ def joinGame(request):
             "h-lo-h",
             "h-h-s"
     ]
-    for pos in players:
-        validPos.remove(pos.current_position)
+    for player in players:
+        validPos.remove(player.current_position)
     new_player = Players(id=player_uuid, character=character, out_of_game=False, is_players_turn=False, player_number=players_in_game+1, current_position=random.choice(validPos), note_pad={}, game=game)
     new_player.save()
     data = {
