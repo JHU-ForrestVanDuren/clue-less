@@ -7,6 +7,7 @@ let socket = new WebSocket(`ws:${currentOrigin}/ws/game/${gameId}`);
 const dealButton = document.getElementById('deal');
 const renderButton = document.getElementById('render');
 const boardAndChat = document.getElementById('boardAndChat');
+const gameNotificationsDiv = document.getElementById('gameNotifications');
 
 let playerNumber = getCookie('playerNumber');
 let playerId = getCookie('playerId');
@@ -147,8 +148,20 @@ socket.onmessage = function(e) {
                 gameNotificationsDiv.innerHTML = "";
                 const textDiv = document.createElement('div');
                 const text = document.createElement('p');
-                text.innerText = "Make a suggestion or accusation";
+
+                const suggestionResponse = getCookie('suggestionResponse');
                 textDiv.appendChild(text);
+
+                if (suggestionResponse != null) {
+                    const endTurnButton = document.createElement('button');
+                    endTurnButton.innerHTML = "End Turn";
+                    text.innerText = suggestionResponse;
+                    textDiv.appendChild(endTurnButton);
+                    endTurnButton.addEventListener("click", endTurnEvent);
+                } else {
+                    text.innerText = "Make a suggestion or accusation";
+                }
+                
                 gameNotificationsDiv.appendChild(textDiv);
             } else {
                 const gameNotificationsDiv = document.getElementById('gameNotifications');
@@ -165,7 +178,20 @@ socket.onmessage = function(e) {
                 endTurnButton.addEventListener("click", endTurnEvent);
             }
         } else {
-            turnStartNotificationUpdate();            
+            let suggestionMatches = getCookie('suggestionMatches');
+            if (suggestionMatches != null) {
+                suggestionMatches = suggestionMatches.split(',');
+                
+                gameNotificationsDiv.innerHTML = ""; 
+
+                for (let i = 0; i < suggestionMatches.length -1; i++) {
+                    addToMatchedCardDisplay(suggestionMatches[i]);                  
+                }
+
+            } else {
+                turnStartNotificationUpdate();
+            }
+                        
         }
     } else if (type == 'suggestionResponse') {
         if (playerNumber == turnNumber) {
@@ -182,6 +208,9 @@ socket.onmessage = function(e) {
             gameNotificationsDiv.appendChild(matchedCardDiv);
 
             endTurnButton.addEventListener("click", endTurnEvent);
+
+            document.cookie = 'endOfTurn=true';
+            document.cookie = `suggestionResponse=${card.innerText}`;
         }
     } else if (type == 'endTurn') {
         turnNumber = data['message'];
@@ -206,6 +235,29 @@ socket.onclose = function(e) {
     console.log("Websocket connection closed");
 }
 
+function addToMatchedCardDisplay(card) {
+    const matchedCardDiv = document.createElement('div');
+    const matchedCard = document.createElement('p');
+    const showCardButton = document.createElement('button');
+    matchedCard.innerHTML = card;
+    showCardButton.classList.add('showCardButton');
+    showCardButton.innerHTML = "Show this card";
+    matchedCardDiv.appendChild(matchedCard);
+    matchedCardDiv.appendChild(showCardButton);
+    gameNotificationsDiv.appendChild(matchedCardDiv);
+
+    showCardButton.addEventListener("click", ()=> {
+        socket.send(JSON.stringify({
+            'type': 'suggestionResponse',
+            'message': matchedCard.innerHTML,
+            'senderCharacter': playerCharacter
+        }));
+
+        turnStartNotificationUpdate();
+        document.cookie = `suggestionMatches=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`
+    }) 
+}
+
 function turnStartNotificationUpdate() {
     if (playerNumber == turnNumber) {
         const gameNotificationsDiv = document.getElementById('gameNotifications');
@@ -228,27 +280,30 @@ function turnStartNotificationUpdate() {
 
 async function endTurnEvent() {
     try {
+        console.log('end turn event');
+        const response = await fetch(`endTurn/${gameId}`);
 
-    const response = await fetch(`endTurn/${gameId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+
+        hasMoved = false;
+        document.cookie = `hasMoved=${hasMoved}`;
+
+        document.cookie = `endOfTurn=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+        document.cookie = 'suggestionResponse=; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+
+        socket.send(JSON.stringify({
+            'type': 'endTurn',
+            'message': data['turnNumber'],
+            'currentTurnPlayer': data['currentTurnPlayer']
+        }));
+
+    } catch (error) {
+        console.log(error);
     }
-
-    const data = await response.json();
-
-    hasMoved = false;
-    document.cookie = `hasMoved=${hasMoved}`;
-
-    socket.send(JSON.stringify({
-        'type': 'endTurn',
-        'message': data['turnNumber'],
-        'currentTurnPlayer': data['currentTurnPlayer']
-    }));
-
-} catch (error) {
-    console.log(error);
-}
 }
 
 async function getHand() {
@@ -440,43 +495,23 @@ function addHandToPlayer(hand) {
 }
 
 function promptForCard(suggestionData) {
-    //TODO: Actual logic for showing a card if you have a match
     playerId = getCookie('playerId');
     sender = suggestionData['sender']
     if (playerId != sender) {
         suggestion = suggestionData['message'];
-        // alert(suggestion['message'].room + " " + suggestion['message'].weapon + " " + suggestion['message'].character);
-        matches = [];
         cards = document.getElementsByClassName('card');
-        // const showCardDiv = document.createElement('div');
-        // showCardDiv.classList.add('showCard');
-        const gameNotificationsDiv = document.getElementById('gameNotifications');
+
         gameNotificationsDiv.innerHTML = "";
+        let matchesCookieValue = "";
 
         for (let card of cards) {
             if (card.innerHTML.trim() == suggestion.room.trim() || card.innerHTML.trim() == suggestion.weapon.trim() || card.innerHTML.trim() == suggestion.character.trim()) {
-                const matchedCardDiv = document.createElement('div');
-                const matchedCard = document.createElement('p');
-                const showCardButton = document.createElement('button');
-                matchedCard.innerHTML = card.innerHTML.trim();
-                showCardButton.classList.add('showCardButton');
-                showCardButton.innerHTML = "Show this card";
-                matchedCardDiv.appendChild(matchedCard);
-                matchedCardDiv.appendChild(showCardButton);
-                gameNotificationsDiv.appendChild(matchedCardDiv);
-
-                showCardButton.addEventListener("click", ()=> {
-                    
-                    socket.send(JSON.stringify({
-                        'type': 'suggestionResponse',
-                        'message': matchedCard.innerHTML,
-                        'senderCharacter': playerCharacter
-                    }));
-
-                    turnStartNotificationUpdate();
-                })
+                addToMatchedCardDisplay(card.innerHTML.trim());
+                matchesCookieValue += `${card.innerHTML.trim()},`
             }
         }
+
+        document.cookie = `suggestionMatches=${matchesCookieValue};`;
     }
     
 }
