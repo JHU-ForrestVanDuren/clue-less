@@ -4,21 +4,14 @@
     grid-template-rows: repeat(5,100px);
     gap: 10px;
     width: fit-content;
-    justify-content: space-evenly;
-    align-content: center;
-    justify-items: center;
-    align-items: center;
 }
 
 .boardSquare {
     border: 1px solid black;
     display: flex;
-    width: 80px;
-    height: 80px;
     justify-content: center;
     align-items: center;
     font-size: 20px;
-    padding: 10px;
     position: relative;
 }
 
@@ -30,6 +23,8 @@
     font-size: 20px;
     justify-content: center;
     align-items: center;
+    justify-self: center;
+    align-self: center;
     padding: 10px;
     transform: rotate(45deg);
     position: relative;
@@ -60,26 +55,24 @@
   display: none;
 }
 
-.showCard {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 12%;
-  width: 30%;
-  height: 20%;
+.gameNotifications {
+  width: 100%;
+  height: 30%;
   border: 1px solid black;
   margin: auto;
   background-color: white;
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
+  box-sizing: border-box;
+  margin-top: 5%;
 }
 
-.showCard button {
+.gameNotifications button {
   width: 100%;
 }
 
-.showCard p {
+.gameNotifications p {
   text-align: center;
 }
 

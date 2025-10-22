@@ -1,16 +1,17 @@
 .chatBox {
     display: flex;
     flex-direction: column;
-    height: 400px;
     width: 100%;
     padding-top: 5px;
     font-size: 20px;
     justify-content: flex-start;
     align-items: center;   
+    box-sizing: border-box;
 }
 
 .messagesBox, .newMessageInput{
     border: 1px solid black;
+    box-sizing: border-box;
 }
 
 .messagesBox {

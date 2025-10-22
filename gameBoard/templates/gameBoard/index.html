@@ -3,7 +3,7 @@
 <div class="mainUi">
     <button class="deal" id="deal">Deal</button>
     <p class="render" id ="render"></p>
-    <div class="boardAndChat">
+    <div class="boardAndChat" id="boardAndChat">
         <div class="boardContainer" id="board">
             <div class="boardSquare" id="Kitchen" tag="room">Kichen</div>
             <div class="boardDiamond" id="h-k-b" tag="room"></div>
@@ -32,6 +32,7 @@
             <div class="boardSquare" id="Study" tag="room">Study</div>
         </div>
         {% include 'chatSystem/index.html' %}
+        <div class="gameNotifications" id="gameNotifications"></div>
     </div>
     {% include 'notePad/index.html' %}
 </div>

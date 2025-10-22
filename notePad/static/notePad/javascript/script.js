@@ -5,17 +5,7 @@ const accusationPopup = document.getElementById('accusationPopup');
 
 if (playerNumber == turnNumber) {
     accusationButton.style.opacity = "1";
-    accusationButton.addEventListener("click", ()=> {
-        handPopup.style.display = 'none';
-
-        let accusationPopupStyle = window.getComputedStyle(accusationPopup);
-
-        if (accusationPopupStyle.display == 'none') {
-            accusationPopup.style.display = 'flex';
-        } else {
-            accusationPopup.style.display = 'none';
-        }
-    })
+    accusationButton.addEventListener("click", accusationButtonClickEvent);
 }
 
 viewCardsButton.addEventListener("click", ()=> {
@@ -30,3 +20,15 @@ viewCardsButton.addEventListener("click", ()=> {
         handPopup.style.display = 'none';
     }
 })
+
+function accusationButtonClickEvent() {
+        handPopup.style.display = 'none';
+
+        let accusationPopupStyle = window.getComputedStyle(accusationPopup);
+
+        if (accusationPopupStyle.display == 'none') {
+            accusationPopup.style.display = 'flex';
+        } else {
+            accusationPopup.style.display = 'none';
+        }
+}

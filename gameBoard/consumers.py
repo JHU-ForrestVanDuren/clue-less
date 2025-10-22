@@ -60,7 +60,12 @@ class MyConsumer(WebsocketConsumer):
             message = text_data_json
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name, {"type": "suggestionResponse", "message":message}
-            )      
+            )
+        elif messageType == "endTurn":
+            message = text_data_json
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name, {"type": "endTurn", "message":message}
+            ) 
 
     # Receive chat message from room group
     def chat_message(self, event):
@@ -102,3 +107,9 @@ class MyConsumer(WebsocketConsumer):
         message = data['message']
         senderCharacter = data['senderCharacter']
         self.send(text_data=json.dumps({"type": "suggestionResponse", "message": message, "senderCharacter": senderCharacter}))
+
+    def endTurn(self, event):
+        data = event["message"]
+        message = data['message']
+        currentTurnPlayer = data['currentTurnPlayer']
+        self.send(text_data=json.dumps({"type": "endTurn", "message": message, "currentTurnPlayer": currentTurnPlayer}))

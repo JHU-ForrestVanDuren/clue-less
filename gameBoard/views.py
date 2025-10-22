@@ -13,6 +13,7 @@ def index(request, game_id):
     messages = Messages.objects.filter(game=game)
     playerId = request.COOKIES.get('playerId')
     player = Players.objects.get(id=playerId)
+    currentTurnPlayer = Players.objects.get(game=game, player_number=game.turnNumber).character
     hand = Cards.objects.filter(players_holding=player).values_list('pk', flat=True)
     hand = list(hand)
 
@@ -24,7 +25,8 @@ def index(request, game_id):
 
     response = render(request, "gameBoard/index.html", context)
     response.set_cookie('playerNumber', player.player_number)
-    response.set_cookie('turnNumber', '1')
+    response.set_cookie('turnNumber', game.turnNumber, path='/game')
+    response.set_cookie('currentTurnPlayer', currentTurnPlayer, path='/game')
     response.set_cookie('playerCharacter', player.character)
 
     return response
@@ -51,8 +53,6 @@ def movePlayer (request, game_id, player_id, room):
 
     game = ActiveGames.objects.get(id=game_id)
     players = Players.objects.filter(game=game)
-    game.turnNumber += 1
-    game.save()
     data = {}
     for player in players:
         playerNum = player.player_number
@@ -96,9 +96,6 @@ def deal(request, game_id):
     for player in players:
         player.is_players_turn == False
         player.save()
-    
-    game.turnNumber = 0
-    game.save()
     
     return HttpResponse()
 
@@ -203,6 +200,7 @@ def getFirstPlayerWithMatch(request):
 
     while (i < num_of_players and player_number == 0):
         cards = Cards.objects.filter(players_holding=players[i].id)
+
         for card in cards:
             if card.value == suggestion['room'] or card.value == suggestion['character'] or card.value == suggestion['weapon']:
                 player_number = i+1
@@ -217,6 +215,7 @@ def getFirstPlayerWithMatch(request):
             if card.value == suggestion['room'] or card.value == suggestion['character'] or card.value == suggestion['weapon']:
                 player_number = i+1
 
+
         i = i+1        
 
     data = {
@@ -225,4 +224,24 @@ def getFirstPlayerWithMatch(request):
 
     return JsonResponse(data)
 
-    
+def endTurn(request, game_id):
+    game = ActiveGames.objects.get(id=game_id)
+    players = Players.objects.filter(game=game)
+    num_of_player = game.num_of_players
+    turn_number = game.turnNumber
+
+    if turn_number == num_of_player:
+        game.turnNumber = 1
+    else:
+        game.turnNumber = turn_number + 1
+
+    game.save()
+
+    currentTurnPlayer = players.get(player_number=game.turnNumber)
+
+    data = {
+        'turnNumber': game.turnNumber,
+        'currentTurnPlayer': currentTurnPlayer.character
+    }
+
+    return JsonResponse(data)
