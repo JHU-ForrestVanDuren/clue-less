@@ -2,9 +2,9 @@ const makeSuggestionButton = document.getElementById('suggest');
 const makeAccusationButton = document.getElementById('accuse');
 
 makeSuggestionButton.addEventListener("click", async ()=>{
-    const room = document.getElementById('rooms').value;
+    const room = getCookie('currentRoom').trim();
     const weapon = document.getElementById('weapons').value;
-    const character = document.getElementById('characters').value
+    const character = document.getElementById('characters').value;
 
     const suggestion = {
         room: room,
@@ -34,18 +34,22 @@ makeSuggestionButton.addEventListener("click", async ()=>{
 
         const data = await response.json();
 
-        socket.send(JSON.stringify({
-            "type": "suggestion",
-            "message": suggestion,
-            "sender": playerId,
-            "matchedPlayerNumber": data['playerNumber']
-        }))
-
+        if (data['playerNumber'] == 0) {
+            document.cookie = `suggestionResponse=none`;
+            createEndTurnDisplay('No match, Make an accusation or end your turn');
+        } else {
+            socket.send(JSON.stringify({
+                "type": "suggestion",
+                "message": suggestion,
+                "sender": playerId,
+                "matchedPlayerNumber": data['playerNumber']
+            }))
+        }
+        document.cookie = 'endOfTurn=true';
+        makeSuggestionButton.classList.add('suggestDisabled');
     } catch(error) {
         console.log(error);
     }
-
-
 })
 
 makeAccusationButton.addEventListener("click", async ()=>{

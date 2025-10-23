@@ -2,7 +2,7 @@ const currentPath = window.location.pathname;
 const gameId = currentPath.substring(currentPath.lastIndexOf('/') +1);
 let currentOrigin = window.location.origin;
 currentOrigin = currentOrigin.substring(currentOrigin.indexOf('/'));
-let socket = new WebSocket(`ws:${currentOrigin}/ws/game/${gameId}`);
+const socket = new WebSocket(`ws:${currentOrigin}/ws/game/${gameId}`);
 
 const dealButton = document.getElementById('deal');
 const renderButton = document.getElementById('render');
@@ -18,6 +18,7 @@ let hasMoved = getCookie('hasMoved') == 'true';
 let currentRoomIsHallway = getCookie('currentRoomIsHallway') == 'true';
 let currentRoom = getCookie('currentRoom');
 let currentTurnPlayer = getCookie('currentTurnPlayer').replace(/[""]/g, '');
+let yourTurnString = 'It\'s your turn. Click one of the highlited rooms to move.';
 
 if (playerNumber == 1 && !gameStarted) {
     dealButton.style.display = 'inline-block';
@@ -25,7 +26,6 @@ if (playerNumber == 1 && !gameStarted) {
 
 dealButton.addEventListener('click', async ()=> {
     try {
-
         const response = await fetch(`/game/deal/${gameId}`, {
             method: 'GET',
             headers: {
@@ -44,7 +44,6 @@ dealButton.addEventListener('click', async ()=> {
         }));
 
         dealButton.style.display = 'none';
-
     } catch (error) {
         console.error(error);
     }
@@ -73,7 +72,6 @@ renderButton.addEventListener('click', async ()=> {
     }
     getValidMoves();
 })
-
 
 socket.onopen = async function(e) {
     console.log("Websocket connection established.");
@@ -107,7 +105,6 @@ socket.onmessage = function(e) {
     const type = data['type'];
 
     if (type == 'chat') {
-    
         let noHistory = document.getElementById('noHistory');
         
         if (noHistory != null) {
@@ -141,41 +138,36 @@ socket.onmessage = function(e) {
 
             if (!hasMoved) {
                 getValidMoves();
-                turnStartNotificationUpdate();
-            } else if (!currentRoomIsHallway) {
-                makeSuggestionButton.style.display = 'inline-block'
-                const gameNotificationsDiv = document.getElementById('gameNotifications');
                 gameNotificationsDiv.innerHTML = "";
-                const textDiv = document.createElement('div');
-                const text = document.createElement('p');
+                addToGameStateDisplay(yourTurnString);
+            } else if (!currentRoomIsHallway) {
+                let suggestionResponse = getCookie('suggestionResponse');
+                let endOfTurn = getCookie('endOfTurn') == 'true';
 
-                const suggestionResponse = getCookie('suggestionResponse');
-                textDiv.appendChild(text);
-
-                if (suggestionResponse != null) {
-                    const endTurnButton = document.createElement('button');
-                    endTurnButton.innerHTML = "End Turn";
-                    text.innerText = suggestionResponse;
-                    textDiv.appendChild(endTurnButton);
-                    endTurnButton.addEventListener("click", endTurnEvent);
-                } else {
-                    text.innerText = "Make a suggestion or accusation";
+                if (!endOfTurn) {
+                    makeSuggestionButton.classList.remove('suggestDisabled');
                 }
                 
-                gameNotificationsDiv.appendChild(textDiv);
+                if (suggestionResponse != null) {
+                    if (suggestionResponse == 'none') {
+                        gameNotificationsDiv.innerHTML = "";
+                        addToGameStateDisplay('No match, Make an accusation or end your turn', 'End Turn').addEventListener("click", endTurnEvent);;
+                    } else {
+                        suggestionResponse = suggestionResponse.split(',');
+                        gameNotificationsDiv.innerHTML = "";
+                        addToGameStateDisplay(`${suggestionResponse[0]} shows you ${suggestionResponse[1]}`, 'End Turn').addEventListener("click", endTurnEvent);;
+                    }
+                } else {
+                    gameNotificationsDiv.innerHTML = "";
+                    const textDiv = document.createElement('div');
+                    const text = document.createElement('p');
+                    text.innerText = "Make a suggestion or accusation";
+                    textDiv.appendChild(text);
+                    gameNotificationsDiv.appendChild(textDiv);
+                }
             } else {
-                const gameNotificationsDiv = document.getElementById('gameNotifications');
                 gameNotificationsDiv.innerHTML = "";
-                const endTurnDiv = document.createElement('div');
-                const endTurnButton = document.createElement('button');
-                endTurnButton.innerHTML = "End Turn";
-                const text = document.createElement('p');
-                text.innerText = "Make an accusation or end your turn";
-                endTurnDiv.appendChild(text);
-                endTurnDiv.appendChild(endTurnButton);
-                gameNotificationsDiv.appendChild(endTurnDiv);
-
-                endTurnButton.addEventListener("click", endTurnEvent);
+                addToGameStateDisplay("Make an accusation or end your turn", 'End Turn').addEventListener("click", endTurnEvent);;
             }
         } else {
             let suggestionMatches = getCookie('suggestionMatches');
@@ -185,32 +177,22 @@ socket.onmessage = function(e) {
                 gameNotificationsDiv.innerHTML = ""; 
 
                 for (let i = 0; i < suggestionMatches.length -1; i++) {
-                    addToMatchedCardDisplay(suggestionMatches[i]);                  
+                    addToGameStateDisplay(suggestionMatches[i], "Show this card").addEventListener("click", (event)=> {
+                        showCardEvent(event, suggestionMatches[i]);
+                    });                  
                 }
-
             } else {
-                turnStartNotificationUpdate();
-            }
-                        
+                gameNotificationsDiv.innerHTML = "";
+                addToGameStateDisplay(`It's ${currentTurnPlayer}s turn`);
+            }              
         }
     } else if (type == 'suggestionResponse') {
         if (playerNumber == turnNumber) {
-            const gameNotificationsDiv = document.getElementById('gameNotifications');
             gameNotificationsDiv.innerHTML = "";
-            const matchedCardDiv = document.createElement('div');
-            const card = document.createElement('p');
-            card.innerText = data['senderCharacter'] + " shows you " + data['message'];
-            const endTurnButton = document.createElement('button');
-            endTurnButton.innerText = "End turn";
-
-            matchedCardDiv.appendChild(card);
-            matchedCardDiv.appendChild(endTurnButton)
-            gameNotificationsDiv.appendChild(matchedCardDiv);
-
-            endTurnButton.addEventListener("click", endTurnEvent);
+            addToGameStateDisplay(`${data['senderCharacter']} show you  ${data['message']}`, 'End Turn').addEventListener("click", endTurnEvent);;
 
             document.cookie = 'endOfTurn=true';
-            document.cookie = `suggestionResponse=${card.innerText}`;
+            document.cookie = `suggestionResponse=${data['senderCharacter']},${data['message']}`;
         }
     } else if (type == 'endTurn') {
         turnNumber = data['message'];
@@ -222,12 +204,14 @@ socket.onmessage = function(e) {
             accusationButton.style.opacity = "1";
             accusationButton.addEventListener("click", accusationButtonClickEvent);
             getValidMoves();
+            gameNotificationsDiv.innerHTML = "";
+            addToGameStateDisplay(yourTurnString);
         } else {
             accusationButton.style.opacity = ".5";
             accusationButton.removeEventListener("click", accusationButtonClickEvent);
+            gameNotificationsDiv.innerHTML = "";
+            addToGameStateDisplay(`It's ${currentTurnPlayer}s turn`);
         }
-
-        turnStartNotificationUpdate();
     }
 }
 
@@ -235,47 +219,21 @@ socket.onclose = function(e) {
     console.log("Websocket connection closed");
 }
 
-function addToMatchedCardDisplay(card) {
-    const matchedCardDiv = document.createElement('div');
-    const matchedCard = document.createElement('p');
-    const showCardButton = document.createElement('button');
-    matchedCard.innerHTML = card;
-    showCardButton.classList.add('showCardButton');
-    showCardButton.innerHTML = "Show this card";
-    matchedCardDiv.appendChild(matchedCard);
-    matchedCardDiv.appendChild(showCardButton);
-    gameNotificationsDiv.appendChild(matchedCardDiv);
+function addToGameStateDisplay(text, buttonText) {
+    const innerDiv = document.createElement('div');
+    const textP = document.createElement('p');
+    textP.innerText = text;
+    innerDiv.appendChild(textP);
+    gameNotificationsDiv.appendChild(innerDiv);
 
-    showCardButton.addEventListener("click", ()=> {
-        socket.send(JSON.stringify({
-            'type': 'suggestionResponse',
-            'message': matchedCard.innerHTML,
-            'senderCharacter': playerCharacter
-        }));
-
-        turnStartNotificationUpdate();
-        document.cookie = `suggestionMatches=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`
-    }) 
-}
-
-function turnStartNotificationUpdate() {
-    if (playerNumber == turnNumber) {
-        const gameNotificationsDiv = document.getElementById('gameNotifications');
-        gameNotificationsDiv.innerHTML = "";
-        const textDiv = document.createElement('div');
-        const text = document.createElement('p');
-        text.innerText = "It's your turn. Click one of the highlited rooms to move";
-        textDiv.appendChild(text);
-        gameNotificationsDiv.appendChild(textDiv);
-    } else {
-        const gameNotificationsDiv = document.getElementById('gameNotifications');
-        gameNotificationsDiv.innerHTML = "";
-        const textDiv = document.createElement('div');
-        const text = document.createElement('p');
-        text.innerText = `It's ${currentTurnPlayer}s turn`;
-        textDiv.appendChild(text);
-        gameNotificationsDiv.appendChild(textDiv);
+    if (buttonText != null) {
+        const button = document.createElement('button');
+        button.innerText = buttonText;
+        innerDiv.appendChild(button);
+        return button;
     }
+
+    return null;
 }
 
 async function endTurnEvent() {
@@ -304,6 +262,18 @@ async function endTurnEvent() {
     } catch (error) {
         console.log(error);
     }
+}
+
+function showCardEvent(event, suggestion) {
+    socket.send(JSON.stringify({
+        'type': 'suggestionResponse',
+        'message': suggestion,
+        'senderCharacter': playerCharacter
+    }));
+
+    gameNotificationsDiv.innerHTML = "";
+    addToGameStateDisplay(`It's ${currentTurnPlayer}s turn`);
+    document.cookie = `suggestionMatches=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
 }
 
 async function getHand() {
@@ -506,7 +476,10 @@ function promptForCard(suggestionData) {
 
         for (let card of cards) {
             if (card.innerHTML.trim() == suggestion.room.trim() || card.innerHTML.trim() == suggestion.weapon.trim() || card.innerHTML.trim() == suggestion.character.trim()) {
-                addToMatchedCardDisplay(card.innerHTML.trim());
+                addToGameStateDisplay(card.innerHTML.trim(), "Show this card").addEventListener("click", (event)=> {
+                    showCardEvent(event, card.innerHTML.trim());
+                });
+
                 matchesCookieValue += `${card.innerHTML.trim()},`
             }
         }
@@ -517,7 +490,7 @@ function promptForCard(suggestionData) {
 }
 
 function relayAccusationResult(accusation) {
-
+    //TODO: Actual end of game logic
     playerId = getCookie('playerId');
     sender = accusation['sender'];
     win = accusation['win'];

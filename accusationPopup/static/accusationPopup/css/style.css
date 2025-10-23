@@ -46,6 +46,7 @@
     justify-content: space-evenly;
 }
 
-.suggest {
-    display: none;
+.suggestDisabled {
+    opacity: .5;
+    pointer-events: none;
 }
