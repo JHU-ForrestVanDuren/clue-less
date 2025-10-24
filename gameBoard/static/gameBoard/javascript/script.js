@@ -18,7 +18,8 @@ let hasMoved = getCookie('hasMoved') == 'true';
 let currentRoomIsHallway = getCookie('currentRoomIsHallway') == 'true';
 let currentRoom = getCookie('currentRoom');
 let currentTurnPlayer = getCookie('currentTurnPlayer').replace(/[""]/g, '');
-let yourTurnString = 'It\'s your turn. Click one of the highlited rooms to move.';
+const yourTurnString = 'It\'s your turn. Click one of the highlited rooms to move.';
+const youLostString = "You lost the game";
 
 if (playerNumber == 1 && !gameStarted) {
     dealButton.style.display = 'inline-block';
@@ -89,12 +90,18 @@ socket.onopen = async function(e) {
         }
 
         let data = await response.json();
-     
-        socket.send(JSON.stringify({
-            'type': 'move',
-            'message': data
-        }));
-       
+
+        if (gameStarted) {
+            socket.send(JSON.stringify({
+                'type': 'moveSingle',
+                'message': data
+            }));
+        } else {
+            socket.send(JSON.stringify({
+                'type': 'move',
+                'message': data
+            }));            
+        }       
     } catch (error) {
         console.error(error);
     }
@@ -103,6 +110,10 @@ socket.onopen = async function(e) {
 socket.onmessage = function(e) {
     const data = JSON.parse(e.data);
     const type = data['type'];
+
+    if (getCookie('playerId') == null) {
+        return;
+    }
 
     if (type == 'chat') {
         let noHistory = document.getElementById('noHistory');
@@ -212,11 +223,34 @@ socket.onmessage = function(e) {
             gameNotificationsDiv.innerHTML = "";
             addToGameStateDisplay(`It's ${currentTurnPlayer}s turn`);
         }
+    } else if (type == 'updateTimer') {
+        updateTimer(data['message']);
+
+        if (playerNumber == turnNumber) {
+            if (data['message'] == 0) {
+                clearValidMoves();
+                endTurnEvent();
+            }
+        }
     }
 }
 
 socket.onclose = function(e) {
     console.log("Websocket connection closed");
+}
+
+function updateTimer(seconds) {
+    minutes = Math.floor(seconds/60);
+    seconds = seconds%60;
+    minutesSpan = document.getElementById('timerMinutes');
+    secondsSpan = document.getElementById('timerSeconds');
+    minutesSpan.innerText = minutes;
+    
+    if (seconds < 10) {
+        secondsSpan.innerText = `0${seconds}`;
+    } else {
+        secondsSpan.innerText = seconds;
+    }
 }
 
 function addToGameStateDisplay(text, buttonText) {
@@ -238,7 +272,6 @@ function addToGameStateDisplay(text, buttonText) {
 
 async function endTurnEvent() {
     try {
-        console.log('end turn event');
         const response = await fetch(`endTurn/${gameId}`);
 
         if (!response.ok) {
@@ -489,23 +522,56 @@ function promptForCard(suggestionData) {
     
 }
 
+function clearAllCookies() {
+    const cookies = document.cookie.split(';');
+
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const equalIndex = cookie.indexOf('=');
+        const name = equalIndex > -1 ? cookie.substr(0, equalIndex) : cookie;
+        document.cookie = name.trim() + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+    }
+
+    document.cookie = 'playerId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+}
+
 function relayAccusationResult(accusation) {
-    //TODO: Actual end of game logic
     playerId = getCookie('playerId');
     sender = accusation['sender'];
     win = accusation['win'];
+    guess = accusation['guess']
+    gameNotificationsDiv.innerHTML = ""
 
     if (win) {
+        clearAllCookies();
+
         if (playerId != sender) {
-            alert(`Player: ${playerId}\n Won the game!`);
+            addToGameStateDisplay(`${currentTurnPlayer}\n Made an accusation of ${guess["character"]} in the ${guess["room"]} with the ${guess["weapon"]} and won the game!`, "Return to lobby").addEventListener("click", ()=> {
+                window.location.href = "";
+            });
         } else {
-            alert('You won the game!');
+            addToGameStateDisplay("You won the game!", "Return to lobby").addEventListener("click", ()=> {
+                window.location.href = "";
+            });
         }
     } else {
-        if (playerId != sender) {
-            alert(`Player: ${playerId}\n Lost the game.`);
+        if (accusation['defaultWinner'] != null) {
+            clearAllCookies();
+            if (playerId != sender) {
+                addToGameStateDisplay(`${currentTurnPlayer}\n Made an accusation of\n${guess["character"]} in the ${guess["room"]} with the ${guess["weapon"]} and lost the game.\n${accusation['defaultWinner']} wins by default`, "Return to lobby").addEventListener("click", ()=> {
+                    window.location.href = "";
+                });
+            } else {
+                endGameButton = addToGameStateDisplay(youLostString + `\n${accusation['defaultWinner']} wins by default`, "Return to lobby").addEventListener("click", ()=> {
+                    window.location.href = "";
+                });
+            }
         } else {
-            alert("You lost the game.")
+            if (playerId != sender) {
+                addToGameStateDisplay(`${currentTurnPlayer}\n Made an accusation of ${guess["character"]} in the ${guess["room"]} with the ${guess["weapon"]} and lost the game.`);
+            } else {
+                endGameButton = addToGameStateDisplay(youLostString, "End Turn").addEventListener('click', endTurnEvent);
+            }
         }
     }
 }

@@ -17,8 +17,6 @@ makeSuggestionButton.addEventListener("click", async ()=>{
         gameId: gameId
     }
 
-    playerId = getCookie('playerId');
-
     try {
         const response = await fetch("getFirstPlayerWithMatch", {
             method: 'POST',
@@ -63,7 +61,8 @@ makeAccusationButton.addEventListener("click", async ()=>{
         room: room,
         weapon: weapon,
         character: character,
-        gameId: gameId
+        gameId: gameId,
+        playerId: playerId
     };
 
     try {
@@ -81,13 +80,13 @@ makeAccusationButton.addEventListener("click", async ()=>{
 
         const data = await response.json();
 
-        playerId = getCookie('playerId');
-
         socket.send(JSON.stringify({
             "type": "accusation",
             "message": accusation,
             "sender": playerId,
-            "win": data['win']
+            "win": data['win'],
+            "guess": data['guess'],
+            "defaultWinner": data['defaultWinner']
         }))
 
     } catch(error) {

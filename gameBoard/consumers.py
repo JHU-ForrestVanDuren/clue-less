@@ -44,6 +44,10 @@ class MyConsumer(WebsocketConsumer):
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name, {"type": "move", "message":message}
             ) 
+        elif messageType == "moveSingle":
+            message = text_data_json['message']
+            self.send(text_data=json.dumps({"type": "move", "message": message}))
+
         elif messageType == "suggestion":
             message = text_data_json['message']
             sender = text_data_json['sender']
@@ -100,7 +104,9 @@ class MyConsumer(WebsocketConsumer):
         message = data["message"]
         sender = data["sender"]
         win = data["win"]
-        self.send(text_data=json.dumps({"type": "accusation", "message": message, "sender": sender, "win": win}))
+        guess = data["guess"]
+        defaultWinner = data["defaultWinner"]
+        self.send(text_data=json.dumps({"type": "accusation", "message": message, "sender": sender, "win": win, "guess": guess, "defaultWinner": defaultWinner}))
 
     def suggestionResponse(self, event):
         data = event["message"]
@@ -113,3 +119,7 @@ class MyConsumer(WebsocketConsumer):
         message = data['message']
         currentTurnPlayer = data['currentTurnPlayer']
         self.send(text_data=json.dumps({"type": "endTurn", "message": message, "currentTurnPlayer": currentTurnPlayer}))
+
+    def update_timer(self,event):
+        message = event['message']
+        self.send(text_data=json.dumps({"type": "updateTimer", "message": message}))

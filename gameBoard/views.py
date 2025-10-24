@@ -1,35 +1,54 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from chatSystem.models import Messages
 from lobby.models import ActiveGames
 from players.models import Players, Cards
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
+from time import sleep
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 import json
+import threading
+import math
+
+game_timing_thread = {}
 
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 def index(request, game_id):
-    game = ActiveGames.objects.get(id=game_id)
-    messages = Messages.objects.filter(game=game)
-    playerId = request.COOKIES.get('playerId')
-    player = Players.objects.get(id=playerId)
-    currentTurnPlayer = Players.objects.get(game=game, player_number=game.turnNumber).character
-    hand = Cards.objects.filter(players_holding=player).values_list('pk', flat=True)
-    hand = list(hand)
+    try:
+        game = ActiveGames.objects.get(id=game_id)
+        messages = Messages.objects.filter(game=game)
+        playerId = request.COOKIES.get('playerId')
+        player = Players.objects.get(id=playerId)
+        currentTurnPlayer = Players.objects.get(game=game, player_number=game.turnNumber).character
+        hand = Cards.objects.filter(players_holding=player).values_list('pk', flat=True)
+        hand = list(hand)
+        minutes = 0
+        seconds = 0
 
-    context = {
-        "messages": messages,
-        "player": player,
-        "hand": hand
-    }
+        if str(game_id) in game_timing_thread:
+            minutes = math.floor(game_timing_thread[str(game_id)][1]/60)
+            seconds = game_timing_thread[str(game_id)][1]%60
 
-    response = render(request, "gameBoard/index.html", context)
-    response.set_cookie('playerNumber', player.player_number)
-    response.set_cookie('turnNumber', game.turnNumber, path='/game')
-    response.set_cookie('currentTurnPlayer', currentTurnPlayer, path='/game')
-    response.set_cookie('playerCharacter', player.character)
+        context = {
+            "messages": messages,
+            "player": player,
+            "hand": hand,
+            "timerMinutes": minutes,
+            "timerSeconds": seconds
+        }
 
-    return response
+        response = render(request, "gameBoard/index.html", context)
+        response.set_cookie('playerNumber', player.player_number, path='/game')
+        response.set_cookie('turnNumber', game.turnNumber, path='/game')
+        response.set_cookie('currentTurnPlayer', currentTurnPlayer, path='/game')
+        response.set_cookie('playerCharacter', player.character, path='/game')
+
+        return response
+    except:
+        return redirect('lobby:index')
 
 def getPositions (request, game_id):
     game = ActiveGames.objects.get(id=game_id)
@@ -77,8 +96,6 @@ def deal(request, game_id):
     cardsExcludeSolution = []
     for card in cardsAll:
         if card.value == game.solution_character or card.value == game.solution_room or card.value == game.solution_weapon:
-            print('exclude')
-            print(card.value)
             continue
         else:
             cardsExcludeSolution.append(card)
@@ -96,8 +113,29 @@ def deal(request, game_id):
     for player in players:
         player.is_players_turn == False
         player.save()
+        
+    thread = threading.Thread(target=timer,args=(game_id,))
+    game_timing_thread[str(game_id)] = [thread, 300]
+    thread.start()  
     
     return HttpResponse()
+
+def timer(game_id):
+    channel_layer = get_channel_layer()
+    room_group_name = f"chat_{game_id}"
+    while game_timing_thread[str(game_id)][1] > -1:
+        async_to_sync(channel_layer.group_send)(
+            room_group_name,
+            {
+                'type': 'update_timer',
+                'message': game_timing_thread[str(game_id)][1]
+            }
+        )
+
+        if game_timing_thread[str(game_id)][1] != 0:
+            game_timing_thread[str(game_id)][1] = game_timing_thread[str(game_id)][1] -1
+
+        sleep(1)
 
 def getValidMoves (request, game_id):
     players = Players.objects.filter(game=game_id)
@@ -173,14 +211,39 @@ def checkWin(request):
     room = body_json.get('room')
     weapon = body_json.get('weapon')
     character = body_json.get('character')
-    game = ActiveGames.objects.get(id=body_json.get('gameId'))
+    game_id = body_json.get('gameId')
+    game = ActiveGames.objects.get(id=game_id)
+    player = Players.objects.get(id=body_json.get('playerId'))
+    players = Players.objects.filter(game=game)
+    defaultWinner = None
     win = False
 
     if weapon == game.solution_weapon and character == game.solution_character and room == game.solution_room:
         win = True
+        game.delete()
+        game_timing_thread[str(game_id)][1] = -1
 
+    if not win:
+        player.out_of_game = True
+        game_timing_thread[str(game_id)][1] = 10
+        player.save()
+        still_in_game_count = 0
+
+        for player in players:
+            if not player.out_of_game:
+                still_in_game_count = still_in_game_count + 1
+                defaultWinner = player.character
+
+        if still_in_game_count > 1:
+            defaultWinner = None
+        else:
+            game.delete()
+            game_timing_thread[str(game_id)][1] = -1            
+        
     data = {
-        "win": win
+        "win": win,
+        "guess": {"room": room, "weapon": weapon, "character": character},
+        "defaultWinner": defaultWinner
     }
 
     return JsonResponse(data)
@@ -230,10 +293,17 @@ def endTurn(request, game_id):
     num_of_player = game.num_of_players
     turn_number = game.turnNumber
 
-    if turn_number == num_of_player:
-        game.turnNumber = 1
-    else:
-        game.turnNumber = turn_number + 1
+    i = turn_number + 1
+
+    while i != turn_number:
+        if i > num_of_player:
+            i = 1
+        else:
+            player = players.get(player_number=i)
+            if not player.out_of_game:
+                game.turnNumber = i
+                break
+            i = i+1
 
     game.save()
 
@@ -243,5 +313,7 @@ def endTurn(request, game_id):
         'turnNumber': game.turnNumber,
         'currentTurnPlayer': currentTurnPlayer.character
     }
+
+    game_timing_thread[str(game_id)][1] = 300
 
     return JsonResponse(data)
