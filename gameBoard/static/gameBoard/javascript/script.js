@@ -8,6 +8,7 @@ const dealButton = document.getElementById('deal');
 const renderButton = document.getElementById('render');
 const boardAndChat = document.getElementById('boardAndChat');
 const gameNotificationsDiv = document.getElementById('gameNotifications');
+const leaveGameButton = document.getElementById('leaveGameButton');
 
 let playerNumber = getCookie('playerNumber');
 let playerId = getCookie('playerId');
@@ -575,6 +576,11 @@ function relayAccusationResult(accusation) {
         }
     }
 }
+
+leaveGameButton.addEventListener('click', ()=> {
+    clearAllCookies();
+    window.location.href = `${window.location.protocol}//${window.location.host}`;
+})
 
 function getCookie(name) {
     const cookies = document.cookie.split('; ')

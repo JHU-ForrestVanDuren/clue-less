@@ -120,3 +120,16 @@ def joinGame(request):
     }
 
     return JsonResponse(data)
+
+@csrf_exempt 
+def get_game_by_player_id(request):
+    body_unicode = request.body.decode('utf-8')
+    body_json = json.loads(body_unicode)
+    playerId = body_json.get('playerId')
+    game = Players.objects.get(id=playerId).game
+
+    data = {
+        'gameId': game.id
+    }
+
+    return JsonResponse(data)

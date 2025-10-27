@@ -1,19 +1,21 @@
 {% load static %}
 <link  href="{% static 'lobby/css/style.css' %}" rel="stylesheet">
 <div>
-    <p >Select a Character to start a game with</p>
-    <button class="startGameButton">Start Game</button> 
-    <select name="characters" id="characters" class="characters">
-        <option value="Colonel Mustard">Colonel Mustard</option>
-        <option value="Professor Plum">Professor Plum</option>
-        <option value="Mrs. Peacock">Mrs. Peacock</option>
-        <option value="Miss Scarlet">Miss Scarlet</option>
-        <option value="Mr. Green">Mr. Green</option>
-        <option value="Mrs. White">Mrs. White</option>
-    </select>
     {% if inGame %}
-        <p>Place current game player is in here</p>
+        <p>Rejoin or remove yourself from the current game you're in</p>
+        <button id="joinCurrentGameButton">Join</button>
+        <button id="leaveCurrentGameButton">Leave</button>
     {% else %}
+        <p >Select a Character to start a game with</p>
+        <button class="startGameButton">Start Game</button> 
+        <select name="characters" id="characters" class="characters">
+            <option value="Colonel Mustard">Colonel Mustard</option>
+            <option value="Professor Plum">Professor Plum</option>
+            <option value="Mrs. Peacock">Mrs. Peacock</option>
+            <option value="Miss Scarlet">Miss Scarlet</option>
+            <option value="Mr. Green">Mr. Green</option>
+            <option value="Mrs. White">Mrs. White</option>
+        </select>
         <p>Select a game to join</p>
         <button class="joinGameButton">Join Game</button>
         <select name="characters" id="charactersJoin" class="characters">
