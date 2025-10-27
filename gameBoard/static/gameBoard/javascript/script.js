@@ -14,7 +14,7 @@ let playerNumber = getCookie('playerNumber');
 let playerId = getCookie('playerId');
 let playerCharacter = getCookie('playerCharacter').replace(/[""]/g, '');
 let turnNumber = getCookie('turnNumber');
-let gameStarted = getCookie('gameStarted') == 'true';
+let gameStarted = getCookie('gameStarted') == 'True';
 let hasMoved = getCookie('hasMoved') == 'true';
 let currentRoomIsHallway = getCookie('currentRoomIsHallway') == 'true';
 let currentRoom = getCookie('currentRoom');
@@ -51,61 +51,23 @@ dealButton.addEventListener('click', async ()=> {
     }
 })
 
-renderButton.addEventListener('click', async ()=> {
-    try {
-        const currentPath = window.location.pathname;
-        const gameId = currentPath.substring(currentPath.lastIndexOf('/') +1);
-
-        const response = await fetch(`/game/getPositions/${gameId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        let data = await response.json();
-        renderPositions(data)
-    } catch (error) {
-        console.error(error);
-    }
-    getValidMoves();
-})
-
-socket.onopen = async function(e) {
+socket.onopen = function(e) {
     console.log("Websocket connection established.");
-    try {
+    getPositions().then((positions)=> {
+        sendMoveMessage(gameStarted, positions);
+    });
 
-        const response = await fetch(`/game/getPositions/${gameId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        });
+    notePadJson = JSON.parse(sessionStorage.getItem('notePad'));
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    for (const key in notePadJson) {
+        row = document.querySelectorAll(`[tag=${key}]`);
+
+        for (const cell of row) {
+            cell.checked = notePadJson[key][cell.className];
         }
-
-        let data = await response.json();
-
-        if (gameStarted) {
-            socket.send(JSON.stringify({
-                'type': 'moveSingle',
-                'message': data
-            }));
-        } else {
-            socket.send(JSON.stringify({
-                'type': 'move',
-                'message': data
-            }));            
-        }       
-    } catch (error) {
-        console.error(error);
     }
+
+    sessionStorage.setItem('notePad', JSON.stringify(notePadJson));
 };
 
 socket.onmessage = function(e) {
@@ -133,13 +95,18 @@ socket.onmessage = function(e) {
         console.log("Received message");
     } else if (type == 'draw') {
         document.cookie = "gameStarted=true";
+        gameStarted = true;
         getHand();
+        getPositions().then((positions)=> {
+            sendMoveMessage(true, positions);
+        });
     } else if (type == 'suggestion') {
         if (playerNumber == data['matchedPlayerNumber']){
             promptForCard(data);
         }
     } else if (type == 'accusation') {
         relayAccusationResult(data);
+        clearValidMoves();
     } else if (type == 'move') {
         renderPositions(data['message']);
         if (playerNumber == turnNumber) {
@@ -147,10 +114,12 @@ socket.onmessage = function(e) {
             currentRoomIsHallway = currentRoom.includes('-');
             document.cookie = `currentRoomIsHallway=${currentRoomIsHallway}`;
             document.cookie = `currentRoom=${currentRoom}`;
+            gameNotificationsDiv.innerHTML = "";
 
-            if (!hasMoved) {
+            if (!gameStarted) {
+                addToGameStateDisplay("Start the game when the amount of players you want in the game have joined.");
+            } else if (!hasMoved) {
                 getValidMoves();
-                gameNotificationsDiv.innerHTML = "";
                 addToGameStateDisplay(yourTurnString);
             } else if (!currentRoomIsHallway) {
                 let suggestionResponse = getCookie('suggestionResponse');
@@ -162,31 +131,25 @@ socket.onmessage = function(e) {
                 
                 if (suggestionResponse != null) {
                     if (suggestionResponse == 'none') {
-                        gameNotificationsDiv.innerHTML = "";
                         addToGameStateDisplay('No match, Make an accusation or end your turn', 'End Turn').addEventListener("click", endTurnEvent);;
                     } else {
                         suggestionResponse = suggestionResponse.split(',');
-                        gameNotificationsDiv.innerHTML = "";
                         addToGameStateDisplay(`${suggestionResponse[0]} shows you ${suggestionResponse[1]}`, 'End Turn').addEventListener("click", endTurnEvent);;
                     }
                 } else {
-                    gameNotificationsDiv.innerHTML = "";
-                    const textDiv = document.createElement('div');
-                    const text = document.createElement('p');
-                    text.innerText = "Make a suggestion or accusation";
-                    textDiv.appendChild(text);
-                    gameNotificationsDiv.appendChild(textDiv);
+                    addToGameStateDisplay("Make a suggestion or accusation");
                 }
             } else {
-                gameNotificationsDiv.innerHTML = "";
                 addToGameStateDisplay("Make an accusation or end your turn", 'End Turn').addEventListener("click", endTurnEvent);;
             }
         } else {
             let suggestionMatches = getCookie('suggestionMatches');
-            if (suggestionMatches != null) {
+            gameNotificationsDiv.innerHTML = "";
+
+            if (!gameStarted) {
+                addToGameStateDisplay("Waiting for game leader to start the game.");
+            } else if (suggestionMatches != null) {
                 suggestionMatches = suggestionMatches.split(',');
-                
-                gameNotificationsDiv.innerHTML = ""; 
 
                 for (let i = 0; i < suggestionMatches.length -1; i++) {
                     addToGameStateDisplay(suggestionMatches[i], "Show this card").addEventListener("click", (event)=> {
@@ -194,7 +157,6 @@ socket.onmessage = function(e) {
                     });                  
                 }
             } else {
-                gameNotificationsDiv.innerHTML = "";
                 addToGameStateDisplay(`It's ${currentTurnPlayer}s turn`);
             }              
         }
@@ -238,6 +200,20 @@ socket.onmessage = function(e) {
 
 socket.onclose = function(e) {
     console.log("Websocket connection closed");
+}
+
+async function sendMoveMessage(single, data) {
+    if (single) {
+        socket.send(JSON.stringify({
+            'type': 'moveSingle',
+            'message': data
+        }));
+    } else {
+        socket.send(JSON.stringify({
+            'type': 'move',
+            'message': data
+        }));            
+    }       
 }
 
 function updateTimer(seconds) {
@@ -292,7 +268,6 @@ async function endTurnEvent() {
             'message': data['turnNumber'],
             'currentTurnPlayer': data['currentTurnPlayer']
         }));
-
     } catch (error) {
         console.log(error);
     }
@@ -351,9 +326,11 @@ async function getPositions() {
         }
 
         let data = await response.json();
-        renderPositions(data)
+
+        return data;
     } catch (error) {
         console.error(error);
+        return null;
     }
 }
 
@@ -442,13 +419,7 @@ function makeMoveHandler(roomId) {
             document.cookie = "hasMoved=true";
             hasMoved = true;
 
-            socket.send(JSON.stringify({
-                'type': 'move',
-                'message': data
-            }));
-
-            renderPositions(data);
-            
+            sendMoveMessage(false, data);
         } catch (error) {
             console.error('handleMoveForRoom error for', roomId, error);
         }
@@ -486,7 +457,6 @@ function clearValidMoves() {
 }
 
 function addHandToPlayer(hand) {
-
     handDiv = document.getElementById('handPopup');
     for (card of hand) {
         const cardP = document.createElement("p");
@@ -494,8 +464,6 @@ function addHandToPlayer(hand) {
         cardP.classList.add('card');
         handDiv.appendChild(cardP);
     }
-
-
 }
 
 function promptForCard(suggestionData) {

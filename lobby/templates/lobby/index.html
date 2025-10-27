@@ -23,7 +23,9 @@
         </select>
         <ul>
             {% for game in gameList %}
-                <li class="game">{{game.id}}</li>
+                {% if not game.game_started %}
+                    <li class="game">{{game.id}}</li>
+                {% endif %}
             {% endfor %}
         </ul>
     {% endif %}

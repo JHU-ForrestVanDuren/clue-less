@@ -45,6 +45,7 @@ def index(request, game_id):
         response.set_cookie('turnNumber', game.turnNumber, path='/game')
         response.set_cookie('currentTurnPlayer', currentTurnPlayer, path='/game')
         response.set_cookie('playerCharacter', player.character, path='/game')
+        response.set_cookie('gameStarted', game.game_started, path='/game')
 
         return response
     except:
@@ -113,6 +114,9 @@ def deal(request, game_id):
     for player in players:
         player.is_players_turn == False
         player.save()
+
+    game.game_started = True
+    game.save()
         
     thread = threading.Thread(target=timer,args=(game_id,))
     game_timing_thread[str(game_id)] = [thread, 300]

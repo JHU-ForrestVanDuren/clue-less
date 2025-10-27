@@ -34,7 +34,8 @@ makeSuggestionButton.addEventListener("click", async ()=>{
 
         if (data['playerNumber'] == 0) {
             document.cookie = `suggestionResponse=none`;
-            createEndTurnDisplay('No match, Make an accusation or end your turn');
+            gameNotificationsDiv.innerHTML = "";
+            addToGameStateDisplay('No match, Make an accusation or end your turn', 'End Turn').addEventListener('click', endTurnEvent);
         } else {
             socket.send(JSON.stringify({
                 "type": "suggestion",
