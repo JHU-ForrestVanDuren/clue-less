@@ -41,7 +41,8 @@ makeSuggestionButton.addEventListener("click", async ()=>{
                 "type": "suggestion",
                 "message": suggestion,
                 "sender": playerId,
-                "matchedPlayerNumber": data['playerNumber']
+                "matchedPlayerNumber": data['playerNumber'],
+                "matches": data["matches"]
             }))
         }
         document.cookie = 'endOfTurn=true';

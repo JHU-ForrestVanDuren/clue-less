@@ -4,7 +4,6 @@ let currentOrigin = window.location.origin;
 currentOrigin = currentOrigin.substring(currentOrigin.indexOf('/'));
 const socket = new WebSocket(`ws:${currentOrigin}/ws/game/${gameId}`);
 
-const dealButton = document.getElementById('deal');
 const renderButton = document.getElementById('render');
 const boardAndChat = document.getElementById('boardAndChat');
 const gameNotificationsDiv = document.getElementById('gameNotifications');
@@ -19,37 +18,10 @@ let hasMoved = getCookie('hasMoved') == 'true';
 let currentRoomIsHallway = getCookie('currentRoomIsHallway') == 'true';
 let currentRoom = getCookie('currentRoom');
 let currentTurnPlayer = getCookie('currentTurnPlayer').replace(/[""]/g, '');
+let hasVoted = getCookie('hasVoted') == 'true';
 const yourTurnString = 'It\'s your turn. Click one of the highlited rooms to move.';
 const youLostString = "You lost the game";
-
-if (playerNumber == 1 && !gameStarted) {
-    dealButton.style.display = 'inline-block';
-}
-
-dealButton.addEventListener('click', async ()=> {
-    try {
-        const response = await fetch(`/game/deal/${gameId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        console.log('Cards added to players');
-
-        socket.send(JSON.stringify({
-            'type': 'draw'
-        }));
-
-        dealButton.style.display = 'none';
-    } catch (error) {
-        console.error(error);
-    }
-})
+showCardTimer = null;
 
 socket.onopen = function(e) {
     console.log("Websocket connection established.");
@@ -68,6 +40,11 @@ socket.onopen = function(e) {
     }
 
     sessionStorage.setItem('notePad', JSON.stringify(notePadJson));
+
+    socket.send(JSON.stringify({
+        'type': 'savePlayerId',
+        'message': playerId
+    }));
 };
 
 socket.onmessage = function(e) {
@@ -109,16 +86,39 @@ socket.onmessage = function(e) {
         clearValidMoves();
     } else if (type == 'move') {
         renderPositions(data['message']);
+
+        if (!gameStarted) {
+            gameNotificationsDiv.innerHTML = "";
+            getVoteInformation().then(voteInformation=> {
+                if (!hasVoted) {
+                    addToGameStateDisplay(`Vote to start the game\n${voteInformation['votes']}/${voteInformation['players']} players have voted to start`, 'Vote').addEventListener("click", voteEvent);
+                } else {
+                    addToGameStateDisplay(`Waiting for other players to vote\n${voteInformation['votes']}/${voteInformation['players']} players have voted to start`);
+                }
+            });
+            
+            return;
+        }
+
         if (playerNumber == turnNumber) {
+            if (showCardTimer != null) {
+                clearTimeout(showCardTimer);
+                showCardTimer = null;
+                showCardTimerP = document.getElementById('showCardTimer');
+                showCardTimerP.remove();
+            }
+
             currentRoom = data['message'][playerId]['position'];
             currentRoomIsHallway = currentRoom.includes('-');
             document.cookie = `currentRoomIsHallway=${currentRoomIsHallway}`;
             document.cookie = `currentRoom=${currentRoom}`;
-            gameNotificationsDiv.innerHTML = "";
 
-            if (!gameStarted) {
-                addToGameStateDisplay("Start the game when the amount of players you want in the game have joined.");
-            } else if (!hasMoved) {
+            suggestionMatches = null;
+            document.cookie = `suggestionMatches=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+
+            gameNotificationsDiv.innerHTML = "";
+            
+            if (!hasMoved) {
                 getValidMoves();
                 addToGameStateDisplay(yourTurnString);
             } else if (!currentRoomIsHallway) {
@@ -131,7 +131,7 @@ socket.onmessage = function(e) {
                 
                 if (suggestionResponse != null) {
                     if (suggestionResponse == 'none') {
-                        addToGameStateDisplay('No match, Make an accusation or end your turn', 'End Turn').addEventListener("click", endTurnEvent);;
+                        addToGameStateDisplay('No match, Make an accusation or end your turn', 'End Turn').addEventListener("click", endTurnEvent);
                     } else {
                         suggestionResponse = suggestionResponse.split(',');
                         addToGameStateDisplay(`${suggestionResponse[0]} shows you ${suggestionResponse[1]}`, 'End Turn').addEventListener("click", endTurnEvent);;
@@ -146,10 +146,26 @@ socket.onmessage = function(e) {
             let suggestionMatches = getCookie('suggestionMatches');
             gameNotificationsDiv.innerHTML = "";
 
-            if (!gameStarted) {
-                addToGameStateDisplay("Waiting for game leader to start the game.");
-            } else if (suggestionMatches != null) {
+            if (suggestionMatches != null) {
                 suggestionMatches = suggestionMatches.split(',');
+
+                counter = getCookie('timerCount') - 1;
+                timerDiv = document.getElementById('timers');
+                showCardTimerP = document.createElement('p');
+                showCardTimerP.id = 'showCardTimer';
+                showCardTimerP.innerHTML = `Show Card Timer: <span id="showCardTimerSpan">${counter}</span>`;
+                timerDiv.appendChild(showCardTimerP);
+
+                showCardTimer = setInterval(function() {
+                    counter --;
+                    document.cookie = `timerCount=${counter}`;
+                    document.getElementById('showCardTimerSpan').innerText = counter;
+                    if (counter <= 0) {
+                        showCardTimerP = document.getElementById('showCardTimer');
+                        showCardTimerP.remove();
+                        showCardEvent(null, suggestionMatches[0]);
+                    }
+                }, 1000)
 
                 for (let i = 0; i < suggestionMatches.length -1; i++) {
                     addToGameStateDisplay(suggestionMatches[i], "Show this card").addEventListener("click", (event)=> {
@@ -161,9 +177,9 @@ socket.onmessage = function(e) {
             }              
         }
     } else if (type == 'suggestionResponse') {
-        if (playerNumber == turnNumber) {
+        if (playerNumber == turnNumber && data['senderCharacter'] != playerCharacter) {
             gameNotificationsDiv.innerHTML = "";
-            addToGameStateDisplay(`${data['senderCharacter']} show you  ${data['message']}`, 'End Turn').addEventListener("click", endTurnEvent);;
+            addToGameStateDisplay(`${data['senderCharacter']} shows you  ${data['message']}`, 'End Turn').addEventListener("click", endTurnEvent);;
 
             document.cookie = 'endOfTurn=true';
             document.cookie = `suggestionResponse=${data['senderCharacter']},${data['message']}`;
@@ -194,6 +210,37 @@ socket.onmessage = function(e) {
                 clearValidMoves();
                 endTurnEvent();
             }
+        }
+    } else if (type == 'leaveGame') {
+        console.log('leave game');
+        leavingPlayerNumber = data['playerNumber'];
+
+        if (data['turnNumber'] == 0) {
+            gameNotificationsDiv.innerHTML = "";
+            clearValidMoves();
+            clearAllCookies();
+            addToGameStateDisplay(`All other players have quit the game.`, "Return to lobby").addEventListener("click", ()=> {
+                window.location.href = "";
+            });
+            return;
+        }
+
+        if (playerNumber != leavingPlayerNumber) {
+            if (playerNumber > leavingPlayerNumber) {
+                playerNumber --;
+                document.cookie = `playerNumber=${playerNumber}`;
+            }
+
+            turnNumber = data['turnNumber'];
+            currentTurnPlayer = data['currentPlayerCharacter'];
+            document.cookie = `turnNumber=${turnNumber}; currentTurnPlayer=${currentTurnPlayer}`;
+
+            getHand();
+        }
+
+        if (playerNumber == turnNumber) {
+            accusationButton.style.opacity = "1";
+            accusationButton.addEventListener("click", accusationButtonClickEvent);
         }
     }
 }
@@ -247,6 +294,49 @@ function addToGameStateDisplay(text, buttonText) {
     return null;
 }
 
+async function getVoteInformation() {
+    try {
+        const response = await fetch(`voteInformation/${gameId}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        return data;
+    } catch (error) {
+        console.log(error);
+    }  
+}
+
+async function voteEvent() {
+    try {
+        const response = await fetch(`vote/${gameId}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+
+        hasVoted = true;
+        document.cookie = `hasVoted=${hasVoted}`;
+
+        if (data['cardsDealt'] == true) {
+            socket.send(JSON.stringify({
+                'type': 'draw'
+            }));
+        } else {
+            getPositions().then((positions)=> {
+                sendMoveMessage(false, positions);
+            });
+        }
+    } catch (error) {
+        console.log(error);
+    }   
+}
+
 async function endTurnEvent() {
     try {
         const response = await fetch(`endTurn/${gameId}`);
@@ -279,6 +369,11 @@ function showCardEvent(event, suggestion) {
         'message': suggestion,
         'senderCharacter': playerCharacter
     }));
+
+    clearTimeout(showCardTimer);
+    showCardTimer = null;
+    showCardTimerP = document.getElementById('showCardTimer');
+    showCardTimerP.remove();
 
     gameNotificationsDiv.innerHTML = "";
     addToGameStateDisplay(`It's ${currentTurnPlayer}s turn`);
@@ -358,19 +453,20 @@ async function getValidMoves() {
 }
 
 function renderPositions(positions) {
-    document.querySelectorAll('.player-dot').forEach(dot => dot.remove());
+    document.querySelectorAll('.playerInHallway').forEach(character => character.remove());
+    document.querySelectorAll('.playerInRoom').forEach(character => character.remove());
     document.querySelectorAll(`[tag*="room"]`).forEach(element => {
         element.classList.remove('active-room');
         element.classList.remove('valid-move');
     });
 
-    const playerColors = {
-        'Miss Scarlet': '#d00000',
-        'Colonel Mustard': '#e1ad01',
-        'Mrs. White': '#5e5e5eff',
-        'Mr. Green': '#006400',
-        'Mrs. Peacock': '#0077b6',
-        'Professor Plum': '#7b2cbf'
+    const playerPictures = {
+        'Miss Scarlet': 'miss_scarlet.png',
+        'Colonel Mustard': 'colonel_mustard.png',
+        'Mrs. White': 'mrs_white.png',
+        'Mr. Green': 'mr_green.png',
+        'Mrs. Peacock': 'mrs_peacock.png',
+        'Professor Plum': 'prof_plum.png'
     };
 
     for (const [id, positionDict] of Object.entries(positions)) {
@@ -378,15 +474,24 @@ function renderPositions(positions) {
         const roomElement = document.getElementById(roomTag);
         if (!roomElement) continue;
 
-        const color = playerColors[positionDict["character"]] || '#000';
+        const playerPicture = playerPictures[positionDict["character"]] || '#000';
 
         // Create dot element
-        const dot = document.createElement('div');
-        dot.classList.add('player-dot');
-        dot.style.backgroundColor = color;
+        const playerDiv = document.createElement('div');
+
+        if (roomElement.id.includes('-')) {
+            playerDiv.classList.add('playerInHallway');
+        } else {
+            playerDiv.classList.add('playerInRoom');
+        }
+        
+        // dot.style.backgroundColor = color;
+        playerDiv.style.backgroundImage = `url('/static/gameBoard/images/${playerPicture}')`;
+        playerDiv.style.backgroundSize = "cover";
+        playerDiv.style.backgroundRepeat = "no-repeat";
 
         // Append to the room
-        roomElement.appendChild(dot);
+        roomElement.appendChild(playerDiv);
     }
 }
 
@@ -458,6 +563,7 @@ function clearValidMoves() {
 
 function addHandToPlayer(hand) {
     handDiv = document.getElementById('handPopup');
+    handDiv.innerHTML = "";
     for (card of hand) {
         const cardP = document.createElement("p");
         cardP.textContent = card;
@@ -487,6 +593,25 @@ function promptForCard(suggestionData) {
         }
 
         document.cookie = `suggestionMatches=${matchesCookieValue};`;
+
+        counter = 30
+
+        timerDiv = document.getElementById('timers');
+        showCardTimerP = document.createElement('p');
+        showCardTimerP.id = 'showCardTimer';
+        showCardTimerP.innerHTML = 'Show Card Timer: <span id="showCardTimerSpan">30</span>';
+        timerDiv.appendChild(showCardTimerP);
+
+        showCardTimer = setInterval(function() {
+            counter --;
+            document.cookie = `timerCount=${counter}`;
+            document.getElementById('showCardTimerSpan').innerText = counter;
+            if (counter == 0) {
+                showCardTimerP = document.getElementById('showCardTimer');
+                showCardTimerP.remove();
+                showCardEvent(null, suggestionMatches[0]);
+            }
+        }, 1000)
     }
     
 }
@@ -508,8 +633,8 @@ function relayAccusationResult(accusation) {
     playerId = getCookie('playerId');
     sender = accusation['sender'];
     win = accusation['win'];
-    guess = accusation['guess']
-    gameNotificationsDiv.innerHTML = ""
+    guess = accusation['guess'];
+    gameNotificationsDiv.innerHTML = "";
 
     if (win) {
         clearAllCookies();
@@ -545,9 +670,37 @@ function relayAccusationResult(accusation) {
     }
 }
 
-leaveGameButton.addEventListener('click', ()=> {
-    clearAllCookies();
-    window.location.href = `${window.location.protocol}//${window.location.host}`;
+leaveGameButton.addEventListener('click', async ()=> {
+    try {
+        const response = await fetch(`/game/leaveGame/${gameId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        socket.send(JSON.stringify({
+            'type': 'leaveGame',
+            'playerNumber': playerNumber,
+            "turnNumber": data['turnNumber'],
+            "currentPlayerCharacter": data['currentPlayerCharacter'],
+            "cardsToAdd": data['cardsToAdd']
+        }));
+
+        getPositions().then((positions)=> {
+            sendMoveMessage(false, positions);
+            clearAllCookies();
+            window.location.href = `${window.location.protocol}//${window.location.host}`;
+        });
+    } catch (error) {
+        console.error(error);
+    }    
 })
 
 function getCookie(name) {

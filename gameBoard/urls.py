@@ -12,5 +12,8 @@ urlpatterns = [
     path("getValidMoves/<uuid:game_id>", views.getValidMoves, name="getValidMoves"),
     path("movePlayer/<uuid:game_id>/<uuid:player_id>/<str:room>", views.movePlayer, name="movePlayer"),
     path('getFirstPlayerWithMatch', views.getFirstPlayerWithMatch, name="getFirstPlayerWithMatch"),
-    path('endTurn/<uuid:game_id>', views.endTurn, name="endTurn")
+    path('endTurn/<uuid:game_id>', views.endTurn, name="endTurn"),
+    path('vote/<uuid:game_id>', views.vote, name="vote"),
+    path('voteInformation/<uuid:game_id>', views.voteInformation, name="voteInformation"),
+    path('leaveGame/<uuid:game_id>', views.leaveGame, name="leaveGame"),
 ]

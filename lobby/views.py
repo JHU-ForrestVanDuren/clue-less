@@ -14,7 +14,9 @@ def index(request):
     in_game = False
 
     try:
-        Players.objects.get(id=playerId)
+        player = Players.objects.get(id=playerId)
+        game = player.game
+        print(game)
         in_game = True
     except:
         print("Player not in game")
@@ -126,10 +128,16 @@ def get_game_by_player_id(request):
     body_unicode = request.body.decode('utf-8')
     body_json = json.loads(body_unicode)
     playerId = body_json.get('playerId')
-    game = Players.objects.get(id=playerId).game
+    gameId = None
+
+    try:
+        gameId = Players.objects.get(id=playerId).game.id
+    except Exception:
+        print("Game or player doesn't exist")
 
     data = {
-        'gameId': game.id
+        'gameId': gameId
     }
 
     return JsonResponse(data)
+

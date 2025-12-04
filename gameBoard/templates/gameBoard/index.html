@@ -1,47 +1,50 @@
 {% load static %}
 <link  href="{% static 'gameBoard/css/style.css' %}" rel="stylesheet">
 <div class="mainUi">
-    <button class="deal" id="deal">Deal</button>
     <div class="boardAndChat" id="boardAndChat">
         <div class="boardContainer" id="board">
-            <div class="boardSquare" id="Kitchen" tag="room">Kichen</div>
+            <div class="boardSquare" id="Kitchen" tag="room"></div>
             <div class="boardDiamond" id="h-k-b" tag="room"></div>
-            <div class="boardSquare" id="Ballroom" tag="room">Ballroom</div>
+            <div class="boardSquare" id="Ballroom" tag="room"></div>
             <div class="boardDiamond" id="h-b-c" tag="room"></div>
-            <div class="boardSquare" id="Conservatory" tag="room">Conservatory</div>
+            <div class="boardSquare" id="Conservatory" tag="room"></div>
             <div class="boardDiamond" id="h-k-dr" tag="room"></div>
             <div class="fillSquare"></div>
             <div class="boardDiamond" id="h-b-li" tag="room"></div>
             <div class="fillSquare"></div>
             <div class="boardDiamond" id="h-c-br" tag="room"></div>
-            <div class="boardSquare" id="DiningRoom" tag="room">Dining Room</div>
+            <div class="boardSquare" id="DiningRoom" tag="room"></div>
             <div class="boardDiamond" id="h-dr-li" tag="room"></div>
-            <div class="boardSquare" id="Library" tag="room">Library</div>
+            <div class="boardSquare" id="Library" tag="room"></div>
             <div class="boardDiamond" id="h-li-br" tag="room"></div>
-            <div class="boardSquare" id="BilliardRoom" tag="room">Billiard Room</div>
+            <div class="boardSquare" id="BilliardRoom" tag="room"></div>
             <div class="boardDiamond" id="h-dr-lo" tag="room"></div>
             <div class="fillSquare"></div>
             <div class="boardDiamond" id="h-li-h" tag="room"></div>
             <div class="fillSquare"></div>
             <div class="boardDiamond" id="h-br-s" tag="room"></div>
-            <div class="boardSquare" id="Lounge" tag="room">Lounge</div>
+            <div class="boardSquare" id="Lounge" tag="room"></div>
             <div class="boardDiamond" id="h-lo-h" tag="room"></div>
-            <div class="boardSquare" id="Hall" tag="room">Hall</div>
+            <div class="boardSquare" id="Hall" tag="room"></div>
             <div class="boardDiamond" id="h-h-s" tag="room"></div>
-            <div class="boardSquare" id="Study" tag="room">Study</div>
+            <div class="boardSquare" id="Study" tag="room"></div>
         </div>
         {% include 'chatSystem/index.html' %}
         <div class="gameNotifications" id="gameNotifications"></div>
-        {% if seconds < 10 %}
-            <p id="timer">Turn Timer: <span id="timerMinutes">{{timerMinutes}}</span>:<span id="timerSeconds">0{{timerSeconds}}</span></p>
-        {% else %}
-            <p id="timer">Turn Timer: <span id="timerMinutes">{{timerMinutes}}</span>:<span id="timerSeconds">{{timerSeconds}}</span></p>
-        {% endif %}
+        <div class="timers" id="timers">
+            {% if seconds < 10 %}
+                <p id="timer">Turn Timer: <span id="timerMinutes">{{timerMinutes}}</span>:<span id="timerSeconds">0{{timerSeconds}}</span></p>
+            {% else %}
+                <p id="timer">Turn Timer: <span id="timerMinutes">{{timerMinutes}}</span>:<span id="timerSeconds">{{timerSeconds}}</span></p>
+            {% endif %}
+        </div>
         <button id="leaveGameButton">Leave Game</button>
     </div>
     {% include 'notePad/index.html' %}
 </div>
 {% include 'accusationPopup/index.html' %}
 {% include 'handPopup/index.html' %}
-
+<script>
+    var backgroundImageUrl = "{% static 'gameBoard/images/conservatory.png' %}"
+</script>
 <script src="{% static 'gameBoard/javascript/script.js' %}"></script>

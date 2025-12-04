@@ -9,7 +9,21 @@ let selectedGame;
 const currentPath = window.location.pathname;
 const gameId = currentPath.substring(currentPath.lastIndexOf('/') +1);
 
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        // Code to run when the page is restored from bfcache
+        console.log('Page was restored from bfcache, run updates.');
+        location.reload();
+    } else {
+        // Code to run on a fresh page load
+        console.log('Page loaded normally.');
+    }
+});
+
+
 if (startGame !== undefined) {
+    document.cookie = 'playerId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+    document.cookie = 'hasVoted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
     startGame.addEventListener('click', async ()=> {
         try {
 
@@ -127,7 +141,12 @@ if (startGame !== undefined) {
             }
             let data = await response.json();
 
-            window.location.href = `/game/${data['gameId']}`;
+            if (data['gameId'] != null)
+                window.location.href = `/game/${data['gameId']}`;
+            else {
+                alert("Either this game doesn't exist anymore or you were kicked from it due to being disconnected to long");
+                location.reload();
+            }
 
         } catch (error) {
             console.error(error);
@@ -135,16 +154,8 @@ if (startGame !== undefined) {
     })
 
     leaveCurrentGameButton.addEventListener('click', ()=> {
-        const cookies = document.cookie.split(';');
-
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i];
-            const equalIndex = cookie.indexOf('=');
-            const name = equalIndex > -1 ? cookie.substr(0, equalIndex) : cookie;
-            document.cookie = name.trim() + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-        }
-
         document.cookie = 'playerId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+        document.cookie = 'hasVoted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
 
         window.location.reload();
     })

@@ -8,12 +8,11 @@ from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
 from time import sleep
 from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+from asgiref.sync import async_to_sync, sync_to_async
+from gameBoard.utils import updatePlayerAndTurnNumbers, getPositionsFromDB, game_timing_thread
 import json
 import threading
 import math
-
-game_timing_thread = {}
 
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 def index(request, game_id):
@@ -52,16 +51,7 @@ def index(request, game_id):
         return redirect('lobby:index')
 
 def getPositions (request, game_id):
-    game = ActiveGames.objects.get(id=game_id)
-    players = Players.objects.filter(game=game)
-    data = {}
-    for player in players:
-        data[str(player.id)] = {
-            "position": player.current_position,
-            "character": player.character
-        }
-        player.save()
-
+    data = getPositionsFromDB(game_id)
     return JsonResponse(data)
 
 def movePlayer (request, game_id, player_id, room):
@@ -86,6 +76,50 @@ def movePlayer (request, game_id, player_id, room):
             "playerNum": game.turnNumber % playerNum
         }
         player.save()
+
+    return JsonResponse(data)
+
+def vote(request, game_id):
+    game = ActiveGames.objects.get(id=game_id)
+    game.votes_to_start = game.votes_to_start + 1
+    game.save()
+
+    data = {
+        "cardsDealt": False
+    }
+
+    if game.num_of_players/game.votes_to_start < 2 and game.num_of_players != 1:
+        data["cardsDealt"] = True
+        deal(request, game_id)
+    return JsonResponse(data)
+    
+def voteInformation(request, game_id):
+    game = ActiveGames.objects.get(id=game_id)
+
+    data = {
+        "votes": game.votes_to_start,
+        "players": game.num_of_players
+    }
+
+    return JsonResponse(data)  
+
+def leaveGame(request, game_id):
+    playerId = request.COOKIES.get('playerId')
+    playerCharacter = Players.objects.get(id=playerId).character
+    data = updatePlayerAndTurnNumbers(playerId, game_id)
+
+    if (data['suggestionMatch'] != ""):
+        channel_layer = get_channel_layer()
+        room_group_name = f"chat_{game_id}"
+        message = {"message": data['suggestionMatch'], "senderCharacter": playerCharacter}
+        async_to_sync(channel_layer.group_send)(
+            room_group_name,
+            {
+                "type": "suggestionResponse", 
+                "message": message
+            }
+        )        
+    
 
     return JsonResponse(data)
 
@@ -264,6 +298,7 @@ def getFirstPlayerWithMatch(request):
     players = Players.objects.filter(game=game).order_by('player_number')
     player_number = 0
     i = turn_number
+    matches = []
 
     while (i < num_of_players and player_number == 0):
         cards = Cards.objects.filter(players_holding=players[i].id)
@@ -271,6 +306,7 @@ def getFirstPlayerWithMatch(request):
         for card in cards:
             if card.value == suggestion['room'] or card.value == suggestion['character'] or card.value == suggestion['weapon']:
                 player_number = i+1
+                matches.append(card.value)
 
         i = i+1
 
@@ -281,12 +317,13 @@ def getFirstPlayerWithMatch(request):
         for card in cards:
             if card.value == suggestion['room'] or card.value == suggestion['character'] or card.value == suggestion['weapon']:
                 player_number = i+1
-
+                matches.append(card.value)
 
         i = i+1        
 
     data = {
-        "playerNumber": player_number
+        "playerNumber": player_number,
+        "matches": matches
     }
 
     return JsonResponse(data)

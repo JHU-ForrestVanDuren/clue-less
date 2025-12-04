@@ -16,7 +16,7 @@
 }
 
 .boardDiamond {
-    border: 1px solid black;
+    border: 5px solid black;
     display: flex;
     width: 50px;
     height: 50px;
@@ -28,13 +28,23 @@
     padding: 10px;
     transform: rotate(45deg);
     position: relative;
+    background-color: lightgrey;
 }
 
-.player-dot {
+.playerInHallway {
     position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+    width: 80%;
+    height: 80%;
+    transform: rotate(-45deg);
+    top: 2px;
+    left: 2px;
+    z-index: 10;
+}
+
+.playerInRoom {
+    position: absolute;
+    width: 60%;
+    height: 60%;
     top: 2px;
     left: 2px;
     z-index: 10;
@@ -74,6 +84,62 @@
 
 .gameNotifications p {
   text-align: center;
+}
+
+#Library {
+  background-image: url("/static/gameBoard/images/library.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#BilliardRoom {
+  background-image: url("/static/gameBoard/images/billiard_room.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#Ballroom {
+  background-image: url("/static/gameBoard/images/ball_room.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#DiningRoom {
+  background-image: url("/static/gameBoard/images/dining_room.png");
+  background-repeat: no-repeat;
+  background-size: cover;  
+  background-position: center -10px;
+}
+
+#Hall {
+  background-image: url("/static/gameBoard/images/hall.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#Kitchen {
+  background-image: url("/static/gameBoard/images/kitchen.png");
+  background-repeat: no-repeat;
+  background-size: cover; 
+}
+
+#Study {
+  background-image: url("/static/gameBoard/images/study.png");
+  background-repeat: no-repeat;
+  background-size: cover; 
+}
+
+#Lounge {
+  background-image: url("/static/gameBoard/images/lounge.png");
+  background-repeat: no-repeat;
+  background-size: cover; 
+}
+
+#Conservatory {
+  background-image: url("/static/gameBoard/images/conservatory.png");
+  background-repeat: no-repeat;
+  background-size: cover; 
+
 }
 
 @keyframes breathe-halo {
