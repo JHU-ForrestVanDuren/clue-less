@@ -92,7 +92,6 @@ def getPositionsFromDB(game_id):
     data = {}
 
     for player in players:
-        print(player.character)
         data[str(player.id)] = {
             "position": player.current_position,
             "character": player.character

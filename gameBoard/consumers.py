@@ -45,14 +45,12 @@ class MyConsumer(AsyncWebsocketConsumer):
                 await self.channel_layer.group_send (
                     self.room_group_name, {"type": "move", "message": positions}
                 ) 
-                print(message['suggestionMatch'])
+
                 if message['suggestionMatch'] != "":
                     message = {"message": message['suggestionMatch'], "senderCharacter": senderCharacter}
                     for key, value in playerIdMap[self.room_name].items():
-                        print(playerIdMap[self.room_name][key][1])
                         playerIdMap[self.room_name][key][1] = ""
                         playerIdMap[self.room_name][key][2] = ""
-                        print(playerIdMap[self.room_name][key][1])
                     await self.channel_layer.group_send (
                         self.room_group_name, {"type": "suggestionResponse", "message":message}
                     )
@@ -114,10 +112,8 @@ class MyConsumer(AsyncWebsocketConsumer):
         elif messageType == "suggestionResponse":
             message = text_data_json
             for key, value in playerIdMap[self.room_name].items():
-                print(playerIdMap[self.room_name][key][1])
                 playerIdMap[self.room_name][key][1] = ""
                 playerIdMap[self.room_name][key][2] = ""
-                print(playerIdMap[self.room_name][key][1])
             await self.channel_layer.group_send (
                 self.room_group_name, {"type": "suggestionResponse", "message":message}
             )
@@ -159,22 +155,10 @@ class MyConsumer(AsyncWebsocketConsumer):
         sender = event["sender"]
         matchedPlayerNumber = event["matchedPlayerNumber"]
         matches = event["matches"]
-        print('test1')
-        print(self.channel_name)
-        print(playerIdMap[self.room_name][self.channel_name][0])
-        print(type(playerIdMap[self.room_name][self.channel_name][0]))
         matchedPlayer = await Players.objects.filter(game=self.room_name).aget(player_number=matchedPlayerNumber)
-        print(matchedPlayer.id)
-        print(type(matchedPlayer.id))
 
         if playerIdMap[self.room_name][self.channel_name][0] == str(matchedPlayer.id):
-            print('test2')
-            print(matches[0])
             suggestionMap[playerIdMap[self.room_name][self.channel_name][0]] = matches[0]
-            print(suggestionMap[playerIdMap[self.room_name][self.channel_name][0]])
-            # playerIdMap[self.room_name][self.channel_name][0] = matches[0]
-            # print(playerIdMap[self.room_name][self.channel_name][1])
-            # playerIdMap[self.room_name][self.channel_name][2] = matchedPlayer.character
 
         await self.send(text_data=json.dumps({"type": "suggestion", "message": message, "sender": sender, "matchedPlayerNumber": matchedPlayerNumber, "matches": matches}))
 
