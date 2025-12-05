@@ -163,6 +163,8 @@ function removeCookies() {
     document.cookie = 'hasVoted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
     document.cookie = 'gameStarted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
     document.cookie = 'suggestionMatches=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
+    document.cookie = 'endOfTurn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
+    document.cookie = 'suggestionResponse=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
 }
 
 function getCookie(name) {
