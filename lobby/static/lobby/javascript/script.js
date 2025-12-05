@@ -22,8 +22,7 @@ window.addEventListener('pageshow', (event) => {
 
 
 if (startGame !== undefined) {
-    document.cookie = 'playerId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
-    document.cookie = 'hasVoted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
+    removeCookies();
     startGame.addEventListener('click', async ()=> {
         try {
 
@@ -154,11 +153,16 @@ if (startGame !== undefined) {
     })
 
     leaveCurrentGameButton.addEventListener('click', ()=> {
-        document.cookie = 'playerId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
-        document.cookie = 'hasVoted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
-
+        removeCookies();
         window.location.reload();
     })
+}
+
+function removeCookies() {
+    document.cookie = 'playerId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+    document.cookie = 'hasVoted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
+    document.cookie = 'gameStarted=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
+    document.cookie = 'suggestionMatches=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/game';
 }
 
 function getCookie(name) {
