@@ -178,7 +178,7 @@ socket.onmessage = function(e) {
     } else if (type == 'suggestionResponse') {
         if (playerNumber == turnNumber && data['senderCharacter'] != playerCharacter) {
             gameNotificationsDiv.innerHTML = "";
-            addToGameStateDisplay(`${data['senderCharacter']} shows you  ${data['message']}`, 'End Turn').addEventListener("click", endTurnEvent);;
+            addToGameStateDisplay(`${data['senderCharacter']} shows you  ${data['message']}`, 'End Turn').addEventListener("click", endTurnEvent);
 
             document.cookie = 'endOfTurn=true';
             document.cookie = `suggestionResponse=${data['senderCharacter']},${data['message']}`;

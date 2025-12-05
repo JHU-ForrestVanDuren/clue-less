@@ -172,6 +172,8 @@ class MyConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({"type": "accusation", "message": message, "sender": sender, "win": win, "guess": guess, "defaultWinner": defaultWinner}))
 
     async def suggestionResponse(self, event):
+        suggestionMap.clear()
+
         data = event["message"]
         message = data['message']
         senderCharacter = data['senderCharacter']

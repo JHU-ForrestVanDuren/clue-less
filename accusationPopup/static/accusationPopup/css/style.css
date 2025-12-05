@@ -11,6 +11,7 @@
     display: none;
     flex-direction: row;
     justify-content: space-evenly;
+    z-index: 10;
 }
 
 .accusationPopup p{
