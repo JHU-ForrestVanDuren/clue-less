@@ -28,7 +28,7 @@ class MyConsumer(AsyncWebsocketConsumer):
         stillInGame = False
 
         for key, value in playerIdMap[self.room_name].items():
-            if value == playerIdMap[self.room_name][self.channel_name][0] and key != self.channel_name:
+            if value[0] == playerIdMap[self.room_name][self.channel_name][0] and key != self.channel_name:
                 stillInGame = True
                 value[1] = playerIdMap[self.room_name][self.channel_name][1]
 
@@ -45,17 +45,6 @@ class MyConsumer(AsyncWebsocketConsumer):
                 await self.channel_layer.group_send (
                     self.room_group_name, {"type": "move", "message": positions}
                 ) 
-                print('test')
-                print('test')
-                print('test')
-                print('test')
-                print('test')
-                print('test')
-                print('test')
-                print('test')
-                print('test')
-                print('test')
-                print('test')
                 print(message['suggestionMatch'])
                 if message['suggestionMatch'] != "":
                     message = {"message": message['suggestionMatch'], "senderCharacter": senderCharacter}

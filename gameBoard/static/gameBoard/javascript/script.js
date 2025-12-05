@@ -162,7 +162,6 @@ socket.onmessage = function(e) {
                     document.getElementById('showCardTimerSpan').innerText = counter;
                     if (counter <= 0) {
                         showCardTimerP = document.getElementById('showCardTimer');
-                        showCardTimerP.remove();
                         showCardEvent(null, suggestionMatches[0]);
                     }
                 }, 1000)
@@ -593,6 +592,8 @@ function promptForCard(suggestionData) {
         }
 
         document.cookie = `suggestionMatches=${matchesCookieValue};`;
+        let suggestionMatches = getCookie('suggestionMatches');
+        suggestionMatches = suggestionMatches.split(',');
 
         counter = 30
 
@@ -608,7 +609,6 @@ function promptForCard(suggestionData) {
             document.getElementById('showCardTimerSpan').innerText = counter;
             if (counter == 0) {
                 showCardTimerP = document.getElementById('showCardTimer');
-                showCardTimerP.remove();
                 showCardEvent(null, suggestionMatches[0]);
             }
         }, 1000)
