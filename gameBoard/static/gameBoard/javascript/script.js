@@ -225,6 +225,16 @@ socket.onmessage = function(e) {
         }
 
         if (playerNumber != leavingPlayerNumber) {
+            if (leavingPlayerNumber == turnNumber) {
+                document.cookie = `suggestionMatches=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+                if (showCardTimer != null) {
+                    clearTimeout(showCardTimer);
+                    showCardTimer = null;
+                    showCardTimerP = document.getElementById('showCardTimer');
+                    showCardTimerP.remove(); 
+                }
+            }
+
             if (playerNumber > leavingPlayerNumber) {
                 playerNumber --;
                 document.cookie = `playerNumber=${playerNumber}`;
